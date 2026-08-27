@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
 <title>縦読み小説エディタ PRO</title>
 
 <style>
@@ -10,12 +11,17 @@
   --bg:#0b0d10;
   --panel:#11151a;
   --panel2:#171c22;
+  --panel3:#1d242c;
   --line:#2b333d;
   --text:#edf1f5;
   --muted:#8d98a5;
   --accent:#9abfff;
+
   --paper:#f7f3ea;
+  --paper2:#eee8dc;
   --ink:#252525;
+
+  --reader-bg:#d9d5cc;
 }
 
 *{
@@ -33,7 +39,11 @@ body{
   overflow:hidden;
   background:var(--bg);
   color:var(--text);
-  font-family:system-ui,"Noto Sans JP",sans-serif;
+
+  font-family:
+    system-ui,
+    "Noto Sans JP",
+    sans-serif;
 }
 
 button,
@@ -47,6 +57,15 @@ button{
   cursor:pointer;
 }
 
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
+
 /* =========================================================
    APP
 ========================================================= */
@@ -54,9 +73,11 @@ button{
 .app{
   width:100%;
   height:100dvh;
+
   display:grid;
   grid-template-rows:58px minmax(0,1fr) 30px;
 }
+
 
 /* =========================================================
    HEADER
@@ -65,11 +86,14 @@ button{
 .topbar{
   display:flex;
   align-items:center;
+
   gap:14px;
   padding:0 16px;
+
   background:rgba(17,21,26,.98);
   border-bottom:1px solid var(--line);
-  z-index:80;
+
+  z-index:100;
 }
 
 .brand{
@@ -84,17 +108,22 @@ button{
 
 .title-input{
   width:min(360px,35vw);
+
   padding:7px 0;
+
   border:0;
   outline:0;
+
   background:transparent;
   color:var(--text);
+
   font-size:15px;
   font-weight:700;
 }
 
 .header-actions{
   margin-left:auto;
+
   display:flex;
   gap:7px;
 }
@@ -103,7 +132,9 @@ button{
 .tool{
   border:1px solid var(--line);
   border-radius:8px;
+
   padding:8px 11px;
+
   background:var(--panel2);
   color:var(--text);
 }
@@ -120,15 +151,20 @@ button{
   font-weight:700;
 }
 
+
 /* =========================================================
    WORKSPACE
 ========================================================= */
 
 .workspace{
   min-height:0;
+
   display:grid;
-  grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);
+  grid-template-columns:
+    minmax(0,1.15fr)
+    minmax(360px,.85fr);
 }
+
 
 /* =========================================================
    READER
@@ -137,10 +173,14 @@ button{
 .reader{
   min-width:0;
   min-height:0;
+
   display:grid;
   grid-template-rows:46px minmax(0,1fr);
-  background:#d9d5cc;
+
+  background:var(--reader-bg);
+
   border-right:1px solid var(--line);
+
   overflow:hidden;
 }
 
@@ -148,11 +188,20 @@ button{
   display:flex;
   align-items:center;
   justify-content:space-between;
+
   padding:0 14px;
+
   background:rgba(247,243,234,.96);
+
   color:#444;
+
   border-bottom:1px solid #c9c2b7;
-  z-index:10;
+}
+
+.reader-header-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
 .reader-header strong{
@@ -164,45 +213,60 @@ button{
   font-size:11px;
 }
 
+.reader-close{
+  display:none;
+
+  border:1px solid #c7c0b5;
+  border-radius:7px;
+
+  padding:5px 9px;
+
+  background:#eee8dc;
+  color:#444;
+
+  font-size:11px;
+}
+
 .reader-viewport{
   min-width:0;
   min-height:0;
-  overflow:auto;
+
+  position:relative;
+
+  overflow:hidden;
 
   padding:28px;
 
-  direction:ltr;
-
-  overscroll-behavior:contain;
-
-  scrollbar-width:thin;
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
 }
 
-/*
-  本文を「画面に収まる高さ」に固定する。
 
-  以前は width:100% + min-height:65% だったため、
-  長文になるほど横方向へ巨大化しやすかった。
-*/
+/* =========================================================
+   BOOK
+========================================================= */
 
 .book{
-  min-height:calc(100% - 10px);
+  position:relative;
 
-  width:max-content;
-  min-width:100%;
+  width:100%;
+  min-width:0;
+  height:100%;
 
   background:var(--paper);
   color:var(--ink);
 
   padding:48px 58px;
 
-  box-shadow:0 18px 55px rgba(0,0,0,.22);
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.22);
 
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
+  display:grid;
 
-  position:relative;
+  grid-template-rows:auto auto minmax(0,1fr);
+
+  overflow:hidden;
 }
 
 .book-title{
@@ -217,37 +281,46 @@ button{
 
   font-size:30px;
   font-weight:700;
+
   line-height:1.8;
-
-  align-self:flex-start;
-
-  margin-bottom:26px;
-
-  white-space:nowrap;
-}
-
-.book-meta{
-  align-self:flex-start;
-
-  color:#777;
-  font-size:12px;
 
   margin-bottom:18px;
 
   white-space:nowrap;
 }
 
-/*
-  重要変更。
+.book-meta{
+  color:#777;
 
-  heightを固定することで、
-  縦書きの1列が画面外へ無限に伸びることを防ぐ。
+  font-size:12px;
 
-  writing-mode:vertical-rl により、
-  文章が下へ進み、列が右から左へ増える。
-*/
+  margin-bottom:14px;
 
-.vertical-text{
+  white-space:nowrap;
+}
+
+
+/* =========================================================
+   PAGINATED PREVIEW
+========================================================= */
+
+.preview-stage{
+  position:relative;
+
+  min-width:0;
+  min-height:0;
+
+  overflow:hidden;
+}
+
+.preview-page{
+  width:100%;
+  height:100%;
+
+  display:none;
+
+  overflow:hidden;
+
   writing-mode:vertical-rl;
   text-orientation:mixed;
   direction:ltr;
@@ -264,175 +337,104 @@ button{
   line-height:1.9;
   letter-spacing:.08em;
 
-  height:calc(100dvh - 210px);
+  transform:translateX(0);
 
-  width:max-content;
-
-  min-width:0;
-
-  overflow:visible;
-}
-
-/* =========================================================
-   文字アニメーション
-========================================================= */
-
-.novel-char{
-  display:inline;
   opacity:1;
 }
 
-.novel-char.typing{
-  animation:
-    novelCharacterIn
-    .18s
-    cubic-bezier(.2,.75,.25,1)
-    both;
+.preview-page.active{
+  display:block;
 }
 
-@keyframes novelCharacterIn{
-  0%{
+.preview-page.page-enter-next{
+  animation:pageNext .24s ease-out both;
+}
+
+.preview-page.page-enter-prev{
+  animation:pagePrev .24s ease-out both;
+}
+
+@keyframes pageNext{
+  from{
     opacity:0;
-    filter:blur(3px);
+    transform:translateX(-16px);
   }
 
-  45%{
-    opacity:.55;
-    filter:blur(1px);
-  }
-
-  100%{
+  to{
     opacity:1;
-    filter:blur(0);
+    transform:translateX(0);
   }
 }
 
-.novel-char.latest{
-  animation:
-    novelLatest
-    .28s
-    ease-out
-    both;
-}
-
-@keyframes novelLatest{
-  0%{
-    opacity:.15;
-    text-shadow:0 0 8px rgba(60,50,35,.25);
+@keyframes pagePrev{
+  from{
+    opacity:0;
+    transform:translateX(16px);
   }
 
-  100%{
+  to{
     opacity:1;
-    text-shadow:none;
+    transform:translateX(0);
   }
 }
+
 
 /* =========================================================
-   READING MODE CONTROLS
+   PAGE CONTROLS
 ========================================================= */
 
-.reading-controls{
+.reader-controls{
   position:absolute;
 
-  right:22px;
-  bottom:22px;
+  left:50%;
+  bottom:14px;
 
-  display:none;
+  transform:translateX(-50%);
 
+  display:flex;
   align-items:center;
   gap:8px;
 
-  z-index:70;
-}
+  padding:6px;
 
-.reader.reading .reading-controls{
-  display:flex;
-}
+  border:1px solid rgba(80,70,60,.18);
+  border-radius:10px;
 
-.reader.reading .reader-viewport{
-  padding:0;
-}
+  background:rgba(247,243,234,.94);
 
-.reader.reading .book{
-  min-height:100%;
-  padding:55px 90px;
-  box-shadow:none;
-  border-radius:0;
-}
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.12);
 
-.reader.reading .vertical-text{
-  height:calc(100dvh - 170px);
+  z-index:10;
 }
-
-/* ページ送りUI */
 
 .page-button{
-  width:42px;
-  height:42px;
+  width:32px;
+  height:30px;
 
   border:1px solid #c9c2b7;
-  border-radius:50%;
+  border-radius:7px;
 
-  background:rgba(247,243,234,.92);
-  color:#3d3a35;
+  background:#eee8dc;
+  color:#444;
 
-  display:grid;
-  place-items:center;
-
-  font-size:18px;
-
-  box-shadow:0 5px 20px rgba(0,0,0,.16);
-
-  transition:
-    transform .15s ease,
-    background .15s ease;
+  font-weight:700;
 }
 
 .page-button:hover{
-  background:#fff;
-  transform:translateY(-1px);
-}
-
-.page-button:active{
-  transform:scale(.94);
-}
-
-.reading-exit{
-  border-radius:9px;
-
-  padding:10px 14px;
-
-  border:1px solid #c9c2b7;
-
-  background:rgba(247,243,234,.95);
-  color:#333;
-
-  font-size:12px;
-  font-weight:700;
-
-  box-shadow:0 5px 20px rgba(0,0,0,.16);
-}
-
-.reading-exit:hover{
-  background:#fff;
+  background:#e3dccf;
 }
 
 .page-indicator{
-  min-width:70px;
-
-  padding:8px 10px;
-
-  border-radius:8px;
-
-  background:rgba(247,243,234,.9);
-  color:#555;
+  min-width:85px;
 
   text-align:center;
 
-  font-size:11px;
+  color:#666;
 
-  box-shadow:0 5px 20px rgba(0,0,0,.12);
+  font-size:11px;
 }
+
 
 /* =========================================================
    WRITER
@@ -451,8 +453,8 @@ button{
 .toolbar{
   display:flex;
   align-items:center;
-  gap:6px;
 
+  gap:6px;
   padding:0 10px;
 
   border-bottom:1px solid var(--line);
@@ -463,7 +465,9 @@ button{
 .tool{
   background:transparent;
   border-color:transparent;
+
   color:var(--muted);
+
   white-space:nowrap;
 }
 
@@ -473,6 +477,7 @@ button{
   border-color:var(--line);
   color:var(--text);
 }
+
 
 /* =========================================================
    EDITOR
@@ -487,6 +492,7 @@ button{
 
 .chapter-list{
   min-height:0;
+
   overflow:auto;
 
   padding:10px;
@@ -498,14 +504,17 @@ button{
   padding:5px 6px 9px;
 
   color:var(--muted);
+
   font-size:12px;
 }
 
 .chapter{
   width:100%;
+
   display:block;
 
   margin-bottom:5px;
+
   padding:10px;
 
   border:1px solid transparent;
@@ -523,15 +532,19 @@ button{
 
 .chapter.active{
   background:#202833;
+
   border-color:#364251;
+
   color:#fff;
 }
 
 .chapter small{
   display:block;
+
   margin-top:4px;
 
   color:#7e8996;
+
   font-size:10px;
 }
 
@@ -581,10 +594,12 @@ button{
   background:rgba(16,20,25,.9);
 
   color:#7f8995;
+
   font-size:11px;
 
   pointer-events:none;
 }
+
 
 /* =========================================================
    FOOTER
@@ -599,6 +614,7 @@ button{
   border-top:1px solid var(--line);
 
   color:var(--muted);
+
   font-size:11px;
 }
 
@@ -606,20 +622,103 @@ button{
   margin-left:auto;
 }
 
+
+/* =========================================================
+   READING MODE
+========================================================= */
+
+.reader.reading{
+  position:fixed;
+
+  inset:58px 0 30px;
+
+  z-index:200;
+
+  border:0;
+
+  grid-template-rows:minmax(0,1fr);
+
+  background:var(--reader-bg);
+}
+
+.reader.reading .reader-header{
+  display:flex;
+
+  position:absolute;
+
+  top:0;
+  left:0;
+  right:0;
+
+  height:46px;
+
+  z-index:20;
+
+  box-shadow:
+    0 4px 18px rgba(0,0,0,.08);
+}
+
+.reader.reading .reader-close{
+  display:block;
+}
+
+.reader.reading .reader-viewport{
+  padding:58px 50px 42px;
+}
+
+.reader.reading .book{
+  width:min(1100px,100%);
+  height:100%;
+
+  padding:55px 70px;
+
+  border-radius:2px;
+
+  box-shadow:
+    0 20px 70px rgba(0,0,0,.20);
+}
+
+
+/* =========================================================
+   READING MODE BACKDROP
+========================================================= */
+
+.reader.reading::after{
+  content:"";
+
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      rgba(255,255,255,.08),
+      transparent 65%
+    );
+
+  z-index:-1;
+}
+
+
 /* =========================================================
    MODAL
 ========================================================= */
 
 .modal-bg{
   position:fixed;
+
   inset:0;
 
   display:none;
+
   place-items:center;
 
   background:rgba(0,0,0,.62);
 
-  z-index:100;
+  z-index:500;
 }
 
 .modal-bg.open{
@@ -636,22 +735,27 @@ button{
 
   background:#161b21;
 
-  box-shadow:0 25px 80px rgba(0,0,0,.4);
+  box-shadow:
+    0 25px 80px rgba(0,0,0,.4);
 }
 
 .modal h2{
   margin:0 0 16px;
+
   font-size:18px;
 }
 
 .field{
   display:grid;
+
   gap:6px;
+
   margin-bottom:12px;
 }
 
 .field label{
   color:var(--muted);
+
   font-size:12px;
 }
 
@@ -672,17 +776,22 @@ button{
 
 .field-row{
   display:grid;
+
   grid-template-columns:1fr 1fr;
+
   gap:10px;
 }
 
 .modal-actions{
   display:flex;
+
   justify-content:flex-end;
+
   gap:7px;
 
   margin-top:16px;
 }
+
 
 /* =========================================================
    MOBILE
@@ -705,17 +814,17 @@ button{
 
     inset:58px 0 30px;
 
-    z-index:50;
+    z-index:200;
 
     border:0;
   }
 
-  .reader.mobile-preview .vertical-text{
-    height:calc(100dvh - 150px);
-  }
-
   .editor-area{
     grid-template-columns:145px minmax(0,1fr);
+  }
+
+  .reader.mobile-preview .reader-close{
+    display:block;
   }
 }
 
@@ -753,42 +862,64 @@ button{
   }
 
   .reader-viewport{
-    padding:15px;
+    padding:10px;
   }
 
   .book{
-    padding:28px 24px;
+    padding:25px 22px 55px;
   }
 
   .book-title{
     font-size:25px;
   }
 
+  .reader.reading .reader-viewport{
+    padding:50px 12px 36px;
+  }
+
   .reader.reading .book{
-    padding:35px 45px;
+    padding:35px 28px 55px;
   }
 
-  .reading-controls{
-    right:12px;
-    bottom:12px;
-    gap:5px;
-  }
-
-  .page-button{
-    width:38px;
-    height:38px;
+  .reader-controls{
+    bottom:7px;
   }
 
   .page-indicator{
-    min-width:58px;
+    min-width:70px;
   }
 
-  .reading-exit{
-    padding:9px 10px;
+}
+
+
+/* =========================================================
+   TOUCH
+========================================================= */
+
+.preview-stage{
+  touch-action:pan-y;
+  user-select:none;
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media(prefers-reduced-motion:reduce){
+
+  *,
+  *::before,
+  *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
   }
+
 }
 </style>
 </head>
+
 
 <body>
 
@@ -809,15 +940,24 @@ button{
 
   <div class="header-actions">
 
-    <button class="btn secondary" id="newButton">
+    <button
+      class="btn secondary"
+      id="newButton"
+    >
       新規
     </button>
 
-    <button class="btn secondary" id="settingsButton">
+    <button
+      class="btn secondary"
+      id="settingsButton"
+    >
       設定
     </button>
 
-    <button class="btn btn-primary" id="saveButton">
+    <button
+      class="btn btn-primary"
+      id="saveButton"
+    >
       保存
     </button>
 
@@ -828,24 +968,43 @@ button{
 
 <main class="workspace">
 
-<section id="reader" class="reader">
+
+<section
+  id="reader"
+  class="reader"
+>
 
   <div class="reader-header">
 
-    <strong>
-      完成プレビュー
-    </strong>
+    <div class="reader-header-left">
 
-    <span id="totalCharacters">
-      0字
-    </span>
+      <strong>
+        完成プレビュー
+      </strong>
+
+      <span id="totalCharacters">
+        0字
+      </span>
+
+      <span id="readerChapter">
+        第一章
+      </span>
+
+    </div>
+
+    <button
+      id="readerClose"
+      class="reader-close"
+    >
+      執筆画面へ戻る
+    </button>
 
   </div>
 
 
   <div
-    class="reader-viewport"
     id="readerViewport"
+    class="reader-viewport"
   >
 
     <article class="book">
@@ -861,48 +1020,45 @@ button{
       ></div>
 
       <div
-        id="preview"
-        class="vertical-text"
-      ></div>
+        id="previewStage"
+        class="preview-stage"
+      >
+
+        <div
+          id="preview"
+          class="preview-page active"
+        ></div>
+
+      </div>
+
+      <div class="reader-controls">
+
+        <button
+          id="prevPage"
+          class="page-button"
+          title="前のページ"
+        >
+          ←
+        </button>
+
+        <div
+          id="pageIndicator"
+          class="page-indicator"
+        >
+          1 / 1
+        </div>
+
+        <button
+          id="nextPage"
+          class="page-button"
+          title="次のページ"
+        >
+          →
+        </button>
+
+      </div>
 
     </article>
-
-  </div>
-
-
-  <!-- 読書モード専用操作 -->
-
-  <div class="reading-controls">
-
-    <button
-      class="page-button"
-      id="pagePrev"
-      title="前へ"
-    >
-      ←
-    </button>
-
-    <div
-      class="page-indicator"
-      id="pageIndicator"
-    >
-      1 / 1
-    </div>
-
-    <button
-      class="page-button"
-      id="pageNext"
-      title="次へ"
-    >
-      →
-    </button>
-
-    <button
-      class="reading-exit"
-      id="exitReading"
-    >
-      執筆に戻る
-    </button>
 
   </div>
 
@@ -977,7 +1133,7 @@ button{
       <textarea
         id="editor"
         spellcheck="false"
-        placeholder="ここに小説を書いてください。入力した文章は左側にリアルタイムで綴られていきます。"
+        placeholder="ここに小説を書いてください。入力した文章は左側の完成プレビューへ反映されます。"
       ></textarea>
 
 
@@ -1013,7 +1169,7 @@ button{
 <footer class="footer">
 
   <span>
-    右端から左方向へ流れる縦書き
+    縦書き・右端から左方向へページ進行
   </span>
 
   <span
@@ -1028,7 +1184,9 @@ button{
 </div>
 
 
-<!-- SETTINGS -->
+<!-- =======================================================
+     SETTINGS
+======================================================= -->
 
 <div
   id="settingsModal"
@@ -1106,11 +1264,15 @@ button{
 
         <select id="fontFamily">
 
-          <option value='"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'>
+          <option
+            value='"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'
+          >
             明朝
           </option>
 
-          <option value='"Noto Sans JP",system-ui,sans-serif'>
+          <option
+            value='"Noto Sans JP",system-ui,sans-serif'
+          >
             ゴシック
           </option>
 
@@ -1137,7 +1299,9 @@ button{
 </div>
 
 
-<!-- NEW WORK -->
+<!-- =======================================================
+     NEW WORK
+======================================================= -->
 
 <div
   id="newModal"
@@ -1194,7 +1358,7 @@ button{
 ========================================================= */
 
 const STORAGE_KEY =
-  "vertical-novel-pro-animation-v2";
+  "vertical-novel-pro-v2";
 
 
 const $ = id =>
@@ -1234,6 +1398,61 @@ function createDefaultState(){
 }
 
 
+function normalizeState(parsed){
+
+  const fallback =
+    createDefaultState();
+
+  if(
+    !parsed ||
+    !Array.isArray(parsed.chapters) ||
+    !parsed.chapters.length
+  ){
+    return fallback;
+  }
+
+  parsed.title =
+    typeof parsed.title === "string"
+      ? parsed.title
+      : fallback.title;
+
+  parsed.activeChapter =
+    Math.max(
+      0,
+      Math.min(
+        Number(parsed.activeChapter) || 0,
+        parsed.chapters.length - 1
+      )
+    );
+
+  parsed.chapters =
+    parsed.chapters.map(
+      (chapter,index)=>({
+
+        title:
+          typeof chapter.title === "string"
+            ? chapter.title
+            : `第${index + 1}章`,
+
+        text:
+          typeof chapter.text === "string"
+            ? chapter.text
+            : ""
+
+      })
+    );
+
+  parsed.settings =
+    {
+      ...fallback.settings,
+      ...(parsed.settings || {})
+    };
+
+  return parsed;
+
+}
+
+
 function loadState(){
 
   try{
@@ -1244,30 +1463,14 @@ function loadState(){
       );
 
     if(!raw){
-      return createDefaultState();
-    }
-
-    const parsed =
-      JSON.parse(raw);
-
-    if(
-      !parsed ||
-      !Array.isArray(parsed.chapters) ||
-      parsed.chapters.length === 0
-    ){
 
       return createDefaultState();
 
     }
 
-    if(!parsed.settings){
-
-      parsed.settings =
-        createDefaultState().settings;
-
-    }
-
-    return parsed;
+    return normalizeState(
+      JSON.parse(raw)
+    );
 
   }catch{
 
@@ -1286,189 +1489,22 @@ let saveTimer = null;
 
 
 /* =========================================================
-   ANIMATION
+   READING STATE
 ========================================================= */
 
-let animationTimer = null;
+let pages = [];
+
+let currentPage = 0;
+
+let pageBuildTimer = null;
 
 let displayedPreviewText = "";
 
+let animationTimer = null;
+
 let animationToken = 0;
 
-
-function getAnimationSpeed(
-  addedLength
-){
-
-  if(addedLength <= 5){
-    return 28;
-  }
-
-  if(addedLength <= 20){
-    return 18;
-  }
-
-  if(addedLength <= 80){
-    return 7;
-  }
-
-  return 1;
-
-}
-
-
-/* =========================================================
-   READING PAGE STATE
-========================================================= */
-
-let readingModeActive = false;
-
-let currentPage = 1;
-
-
-/*
-  ページ単位のスクロール幅。
-
-  縦書きでは右から左へ文章が増えるため、
-  1画面分ずつ横方向へ移動させる。
-*/
-
-function getPageWidth(){
-
-  const viewport =
-    $("readerViewport");
-
-  if(!viewport){
-    return 600;
-  }
-
-  return Math.max(
-    280,
-    viewport.clientWidth * .88
-  );
-
-}
-
-
-function updatePageIndicator(){
-
-  const viewport =
-    $("readerViewport");
-
-  const indicator =
-    $("pageIndicator");
-
-  if(!viewport || !indicator){
-    return;
-  }
-
-  const maxScroll =
-    Math.max(
-      0,
-      viewport.scrollWidth -
-      viewport.clientWidth
-    );
-
-  const pageWidth =
-    getPageWidth();
-
-  const totalPages =
-    Math.max(
-      1,
-      Math.ceil(
-        maxScroll / pageWidth
-      ) + 1
-    );
-
-  if(
-    viewport.scrollLeft <= 2
-  ){
-
-    currentPage = 1;
-
-  }else{
-
-    /*
-      RTL系のスクロール値はブラウザによって
-      扱いが微妙に違うため、ここでは実測値を使う。
-    */
-
-    const distance =
-      maxScroll -
-      Math.max(
-        0,
-        viewport.scrollLeft
-      );
-
-    currentPage =
-      Math.min(
-        totalPages,
-        Math.max(
-          1,
-          Math.round(
-            distance / pageWidth
-          ) + 1
-        )
-      );
-
-  }
-
-  indicator.textContent =
-    currentPage +
-    " / " +
-    totalPages;
-
-}
-
-
-function movePage(direction){
-
-  const viewport =
-    $("readerViewport");
-
-  if(!viewport){
-    return;
-  }
-
-  const amount =
-    getPageWidth() *
-    direction;
-
-  viewport.scrollBy({
-
-    left:amount,
-
-    behavior:"smooth"
-
-  });
-
-}
-
-
-$("readerViewport")
-  .addEventListener(
-    "scroll",
-    updatePageIndicator,
-    {passive:true}
-  );
-
-
-$("pagePrev")
-  .addEventListener(
-    "click",
-    ()=>{
-      movePage(-1);
-    }
-  );
-
-
-$("pageNext")
-  .addEventListener(
-    "click",
-    ()=>{
-      movePage(1);
-    }
-  );
+let touchStartX = 0;
 
 
 /* =========================================================
@@ -1531,8 +1567,385 @@ function syncEditor(){
 
 
 /* =========================================================
-   PREVIEW ANIMATION
+   PAGE CREATION
 ========================================================= */
+
+/*
+  長文を1つの巨大な縦書き領域にしない。
+  画面の高さに応じてページ単位へ分割する。
+*/
+
+function calculateCharactersPerPage(){
+
+  const stage =
+    $("previewStage");
+
+  if(!stage){
+
+    return 450;
+
+  }
+
+  const height =
+    stage.clientHeight;
+
+  const fontSize =
+    Number(state.settings.fontSize) || 18;
+
+  const lineHeight =
+    Number(state.settings.lineHeight) || 1.9;
+
+  const letterHeight =
+    fontSize * lineHeight;
+
+  const usableHeight =
+    Math.max(
+      240,
+      height - 20
+    );
+
+  const rows =
+    Math.max(
+      8,
+      Math.floor(
+        usableHeight /
+        letterHeight
+      )
+    );
+
+  /*
+    1ページあたりの縦列数を
+    画面幅から概算。
+  */
+
+  const width =
+    Math.max(
+      300,
+      stage.clientWidth
+    );
+
+  const columnWidth =
+    fontSize * 2.1;
+
+  const columns =
+    Math.max(
+      3,
+      Math.floor(
+        width /
+        columnWidth
+      )
+    );
+
+  return Math.max(
+    80,
+    rows * columns
+  );
+
+}
+
+
+function splitTextIntoPages(text){
+
+  if(!text){
+
+    return [""];
+
+  }
+
+  const chars =
+    [...text];
+
+  const perPage =
+    calculateCharactersPerPage();
+
+  const result = [];
+
+  let buffer = "";
+
+  /*
+    単純に文字数だけで切らず、
+    可能な限り句点・改行を境界にする。
+  */
+
+  let index = 0;
+
+  while(index < chars.length){
+
+    let end =
+      Math.min(
+        index + perPage,
+        chars.length
+      );
+
+    if(end < chars.length){
+
+      const searchStart =
+        Math.max(
+          index + Math.floor(perPage * .65),
+          index
+        );
+
+      const candidates =
+        chars
+          .slice(
+            searchStart,
+            end
+          );
+
+      let best = -1;
+
+      for(
+        let i=0;
+        i<candidates.length;
+        i++
+      ){
+
+        if(
+          candidates[i] === "。" ||
+          candidates[i] === "！" ||
+          candidates[i] === "？" ||
+          candidates[i] === "\n"
+        ){
+
+          best = i;
+
+        }
+
+      }
+
+      if(best >= 0){
+
+        end =
+          searchStart +
+          best +
+          1;
+
+      }
+
+    }
+
+    buffer =
+      chars
+        .slice(
+          index,
+          end
+        )
+        .join("");
+
+    result.push(buffer);
+
+    index = end;
+
+  }
+
+  return result.length
+    ? result
+    : [""];
+
+}
+
+
+/* =========================================================
+   BUILD PAGES
+========================================================= */
+
+function buildPages(){
+
+  clearTimeout(
+    pageBuildTimer
+  );
+
+  pageBuildTimer =
+    setTimeout(
+      ()=>{
+        actuallyBuildPages();
+      },
+      30
+    );
+
+}
+
+
+function actuallyBuildPages(){
+
+  syncEditor();
+
+  const chapter =
+    currentChapter();
+
+  if(!chapter){
+
+    pages = [""];
+
+    currentPage = 0;
+
+    return;
+
+  }
+
+  const oldPage =
+    currentPage;
+
+  pages =
+    splitTextIntoPages(
+      chapter.text
+    );
+
+  currentPage =
+    Math.min(
+      oldPage,
+      Math.max(
+        0,
+        pages.length - 1
+      )
+    );
+
+  renderCurrentPage(
+    false
+  );
+
+  updatePageIndicator();
+
+}
+
+
+/* =========================================================
+   RENDER CURRENT PAGE
+========================================================= */
+
+function renderCurrentPage(
+  animate=true,
+  direction="next"
+){
+
+  const stage =
+    $("previewStage");
+
+  const preview =
+    $("preview");
+
+  if(!stage || !preview){
+    return;
+  }
+
+  const text =
+    pages[currentPage] ?? "";
+
+  preview.className =
+    "preview-page active";
+
+  if(animate){
+
+    preview.classList.add(
+      direction === "prev"
+        ? "page-enter-prev"
+        : "page-enter-next"
+    );
+
+  }
+
+  preview.textContent =
+    text;
+
+  applySettings();
+
+}
+
+
+function updatePageIndicator(){
+
+  $("pageIndicator").textContent =
+    `${currentPage + 1} / ${Math.max(1,pages.length)}`;
+
+  $("prevPage").disabled =
+    currentPage <= 0;
+
+  $("nextPage").disabled =
+    currentPage >= pages.length - 1;
+
+}
+
+
+/* =========================================================
+   PAGE NAVIGATION
+========================================================= */
+
+function nextPage(){
+
+  if(currentPage >= pages.length - 1){
+
+    return;
+
+  }
+
+  currentPage++;
+
+  renderCurrentPage(
+    true,
+    "next"
+  );
+
+  updatePageIndicator();
+
+}
+
+
+function prevPage(){
+
+  if(currentPage <= 0){
+
+    return;
+
+  }
+
+  currentPage--;
+
+  renderCurrentPage(
+    true,
+    "prev"
+  );
+
+  updatePageIndicator();
+
+}
+
+
+$("nextPage").addEventListener(
+  "click",
+  nextPage
+);
+
+
+$("prevPage").addEventListener(
+  "click",
+  prevPage
+);
+
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+function getAnimationSpeed(
+  addedLength
+){
+
+  if(addedLength <= 5){
+    return 28;
+  }
+
+  if(addedLength <= 20){
+    return 18;
+  }
+
+  if(addedLength <= 80){
+    return 7;
+  }
+
+  return 1;
+
+}
+
 
 function animatePreview(
   newText
@@ -1542,69 +1955,106 @@ function animatePreview(
     animationTimer
   );
 
-
   const token =
     ++animationToken;
 
+  /*
+    大幅変更ならページを再構築。
+  */
+
+  if(
+    !newText.startsWith(
+      displayedPreviewText
+    ) ||
+    newText.length <
+      displayedPreviewText.length
+  ){
+
+    displayedPreviewText =
+      newText;
+
+    currentPage =
+      pages.length - 1;
+
+    buildPages();
+
+    return;
+
+  }
+
+  const oldText =
+    displayedPreviewText;
+
+  const addedText =
+    newText.slice(
+      oldText.length
+    );
+
+  if(!addedText){
+
+    return;
+
+  }
+
+  /*
+    長文入力ではアニメーションを
+    実質即時にする。
+  */
+
+  const speed =
+    getAnimationSpeed(
+      [...addedText].length
+    );
+
+  displayedPreviewText =
+    newText;
+
+  buildPages();
+
+  /*
+    入力中は最新ページへ追従。
+  */
+
+  const newPages =
+    splitTextIntoPages(
+      newText
+    );
+
+  pages =
+    newPages;
+
+  currentPage =
+    pages.length - 1;
 
   const preview =
     $("preview");
 
+  const full =
+    pages[currentPage] || "";
+
+  /*
+    短い入力だけ簡易タイプ演出。
+  */
 
   if(
-    newText.startsWith(
-      displayedPreviewText
-    ) &&
-    newText.length >
-    displayedPreviewText.length
+    speed >= 7 &&
+    full.length > 0
   ){
 
-    const oldText =
-      displayedPreviewText;
+    let i = 0;
 
+    preview.textContent = "";
 
-    const addedText =
-      newText.slice(
-        oldText.length
-      );
+    function type(){
 
-
-    preview.textContent =
-      oldText;
-
-
-    const speed =
-      getAnimationSpeed(
-        [...addedText].length
-      );
-
-
-    const characters =
-      [...addedText];
-
-
-    let index = 0;
-
-
-    function typeNext(){
-
-      if(
-        token !== animationToken
-      ){
+      if(token !== animationToken){
         return;
       }
 
-
-      if(
-        index >=
-        characters.length
-      ){
+      if(i >= full.length){
 
         preview.textContent =
-          newText;
-
-        displayedPreviewText =
-          newText;
+          full;
 
         updatePageIndicator();
 
@@ -1612,47 +2062,31 @@ function animatePreview(
 
       }
 
-
       preview.textContent =
-        oldText +
-        characters
-          .slice(
-            0,
-            index + 1
-          )
-          .join("");
-
-
-      index++;
-
+        full.slice(
+          0,
+          ++i
+        );
 
       animationTimer =
         setTimeout(
-          typeNext,
+          type,
           speed
         );
 
     }
 
+    type();
 
-    typeNext();
+  }else{
 
-    return;
+    renderCurrentPage(
+      false
+    );
 
   }
 
-
-  displayedPreviewText =
-    newText;
-
-
-  preview.textContent =
-    newText;
-
-
-  requestAnimationFrame(
-    updatePageIndicator
-  );
+  updatePageIndicator();
 
 }
 
@@ -1665,15 +2099,12 @@ function render(){
 
   syncEditor();
 
-
   const chapter =
     currentChapter();
-
 
   if(!chapter){
     return;
   }
-
 
   const total =
     state.chapters.reduce(
@@ -1685,14 +2116,11 @@ function render(){
       0
     );
 
-
   $("titleInput").value =
     state.title;
 
-
   $("bookTitle").textContent =
     state.title;
-
 
   $("bookMeta").textContent =
     chapter.title +
@@ -1702,13 +2130,14 @@ function render(){
     ).toLocaleString() +
     "字";
 
+  $("readerChapter").textContent =
+    chapter.title;
 
   $("characterCount").textContent =
     characterLength(
       chapter.text
     ).toLocaleString() +
     "字";
-
 
   $("lineCount").textContent =
     (
@@ -1718,18 +2147,13 @@ function render(){
     ).toLocaleString() +
     "行";
 
-
   $("totalCharacters").textContent =
     total.toLocaleString() +
     "字";
 
-
   renderChapters();
 
-
-  requestAnimationFrame(
-    updatePageIndicator
-  );
+  applySettings();
 
 }
 
@@ -1743,10 +2167,8 @@ function renderChapters(){
   const container =
     $("chapters");
 
-
   container.innerHTML =
     "";
-
 
   state.chapters.forEach(
     (chapter,index)=>{
@@ -1756,10 +2178,8 @@ function renderChapters(){
           "button"
         );
 
-
       button.type =
         "button";
-
 
       button.className =
         "chapter" +
@@ -1769,7 +2189,6 @@ function renderChapters(){
             ? " active"
             : ""
         );
-
 
       button.innerHTML =
         escapeHtml(
@@ -1781,12 +2200,12 @@ function renderChapters(){
         ).toLocaleString() +
         "字</small>";
 
-
       button.addEventListener(
         "click",
-        ()=>switchChapter(index)
+        ()=>{
+          switchChapter(index);
+        }
       );
-
 
       container.appendChild(
         button
@@ -1794,7 +2213,6 @@ function renderChapters(){
 
     }
   );
-
 
   $("chapterCount").textContent =
     state.chapters.length;
@@ -1816,38 +2234,35 @@ function switchChapter(
 
   animationToken++;
 
-
   syncEditor();
-
 
   state.activeChapter =
     index;
 
-
   const chapter =
     currentChapter();
-
 
   $("editor").value =
     chapter.text;
 
-
   displayedPreviewText =
     chapter.text;
 
+  currentPage =
+    0;
 
-  $("preview").textContent =
-    chapter.text;
-
-
-  $("readerViewport")
-    .scrollLeft = 0;
-
-
-  currentPage = 1;
-
+  pages =
+    splitTextIntoPages(
+      chapter.text
+    );
 
   render();
+
+  renderCurrentPage(
+    false
+  );
+
+  updatePageIndicator();
 
   scheduleSave();
 
@@ -1855,7 +2270,7 @@ function switchChapter(
 
 
 /* =========================================================
-   AUTO SAVE
+   SAVE
 ========================================================= */
 
 function scheduleSave(){
@@ -1864,14 +2279,11 @@ function scheduleSave(){
     saveTimer
   );
 
-
   $("saveState").textContent =
     "保存中…";
 
-
   $("status").textContent =
     "編集中";
-
 
   saveTimer =
     setTimeout(
@@ -1888,19 +2300,15 @@ function saveState(){
     saveTimer
   );
 
-
   syncEditor();
-
 
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(state)
   );
 
-
   $("saveState").textContent =
     "保存済み";
-
 
   $("status").textContent =
     "保存しました";
@@ -1908,106 +2316,92 @@ function saveState(){
 }
 
 
-$("saveButton")
-  .addEventListener(
-    "click",
-    saveState
-  );
+$("saveButton").addEventListener(
+  "click",
+  saveState
+);
 
 
 /* =========================================================
    EDITOR INPUT
 ========================================================= */
 
-$("editor")
-  .addEventListener(
-    "input",
-    ()=>{
+$("editor").addEventListener(
+  "input",
+  ()=>{
 
-      syncEditor();
+    syncEditor();
 
+    const text =
+      currentChapter().text;
 
-      const text =
-        currentChapter().text;
+    animatePreview(
+      text
+    );
 
-
-      animatePreview(
+    $("bookMeta").textContent =
+      currentChapter().title +
+      "　" +
+      characterLength(
         text
+      ).toLocaleString() +
+      "字";
+
+    $("characterCount").textContent =
+      characterLength(
+        text
+      ).toLocaleString() +
+      "字";
+
+    $("lineCount").textContent =
+      (
+        text
+          ? text.split("\n").length
+          : 0
+      ).toLocaleString() +
+      "行";
+
+    const total =
+      state.chapters.reduce(
+        (sum,item)=>
+          sum +
+          characterLength(
+            item.text
+          ),
+        0
       );
 
+    $("totalCharacters").textContent =
+      total.toLocaleString() +
+      "字";
 
-      $("bookMeta").textContent =
-        currentChapter().title +
-        "　" +
-        characterLength(
-          text
-        ).toLocaleString() +
-        "字";
+    renderChapters();
 
+    scheduleSave();
 
-      $("characterCount").textContent =
-        characterLength(
-          text
-        ).toLocaleString() +
-        "字";
-
-
-      $("lineCount").textContent =
-        (
-          text
-            ? text.split("\n").length
-            : 0
-        ).toLocaleString() +
-        "行";
-
-
-      const total =
-        state.chapters.reduce(
-          (sum,item)=>
-            sum +
-            characterLength(
-              item.text
-            ),
-          0
-        );
-
-
-      $("totalCharacters").textContent =
-        total.toLocaleString() +
-        "字";
-
-
-      renderChapters();
-
-
-      scheduleSave();
-
-    }
-  );
+  }
+);
 
 
 /* =========================================================
    TITLE
 ========================================================= */
 
-$("titleInput")
-  .addEventListener(
-    "input",
-    event=>{
+$("titleInput").addEventListener(
+  "input",
+  event=>{
 
-      state.title =
-        event.target.value ||
-        "新しい物語";
+    state.title =
+      event.target.value ||
+      "新しい物語";
 
+    $("bookTitle").textContent =
+      state.title;
 
-      $("bookTitle").textContent =
-        state.title;
+    scheduleSave();
 
-
-      scheduleSave();
-
-    }
-  );
+  }
+);
 
 
 /* =========================================================
@@ -2019,32 +2413,26 @@ function applySettings(){
   const settings =
     state.settings;
 
-
   const preview =
     $("preview");
 
+  if(!preview){
+    return;
+  }
 
   preview.style.fontSize =
     settings.fontSize +
     "px";
 
-
   preview.style.lineHeight =
     settings.lineHeight;
-
 
   preview.style.letterSpacing =
     settings.letterSpacing +
     "em";
 
-
   preview.style.fontFamily =
     settings.fontFamily;
-
-
-  requestAnimationFrame(
-    updatePageIndicator
-  );
 
 }
 
@@ -2054,22 +2442,17 @@ function openSettings(){
   const settings =
     state.settings;
 
-
   $("fontSize").value =
     settings.fontSize;
-
 
   $("lineHeight").value =
     settings.lineHeight;
 
-
   $("letterSpacing").value =
     settings.letterSpacing;
 
-
   $("fontFamily").value =
     settings.fontFamily;
-
 
   $("settingsModal")
     .classList
@@ -2078,243 +2461,222 @@ function openSettings(){
 }
 
 
-$("settingsButton")
-  .addEventListener(
-    "click",
-    openSettings
-  );
+$("settingsButton").addEventListener(
+  "click",
+  openSettings
+);
 
 
-$("closeSettings")
-  .addEventListener(
-    "click",
-    ()=>{
-      $("settingsModal")
-        .classList
-        .remove("open");
-    }
-  );
+$("closeSettings").addEventListener(
+  "click",
+  ()=>{
+    $("settingsModal")
+      .classList
+      .remove("open");
+  }
+);
 
 
-$("fontSize")
-  .addEventListener(
-    "input",
-    event=>{
+$("fontSize").addEventListener(
+  "input",
+  event=>{
 
-      state.settings.fontSize =
-        Number(
-          event.target.value
-        );
+    state.settings.fontSize =
+      Number(
+        event.target.value
+      ) || 18;
 
+    applySettings();
 
-      applySettings();
+    buildPages();
 
-      scheduleSave();
+    scheduleSave();
 
-    }
-  );
-
-
-$("lineHeight")
-  .addEventListener(
-    "input",
-    event=>{
-
-      state.settings.lineHeight =
-        Number(
-          event.target.value
-        );
+  }
+);
 
 
-      applySettings();
+$("lineHeight").addEventListener(
+  "input",
+  event=>{
 
-      scheduleSave();
+    state.settings.lineHeight =
+      Number(
+        event.target.value
+      ) || 1.9;
 
-    }
-  );
+    applySettings();
 
+    buildPages();
 
-$("letterSpacing")
-  .addEventListener(
-    "input",
-    event=>{
+    scheduleSave();
 
-      state.settings.letterSpacing =
-        Number(
-          event.target.value
-        );
-
-
-      applySettings();
-
-      scheduleSave();
-
-    }
-  );
+  }
+);
 
 
-$("fontFamily")
-  .addEventListener(
-    "change",
-    event=>{
+$("letterSpacing").addEventListener(
+  "input",
+  event=>{
 
-      state.settings.fontFamily =
-        event.target.value;
+    state.settings.letterSpacing =
+      Number(
+        event.target.value
+      ) || 0;
+
+    applySettings();
+
+    scheduleSave();
+
+  }
+);
 
 
-      applySettings();
+$("fontFamily").addEventListener(
+  "change",
+  event=>{
 
-      scheduleSave();
+    state.settings.fontFamily =
+      event.target.value;
 
-    }
-  );
+    applySettings();
+
+    buildPages();
+
+    scheduleSave();
+
+  }
+);
 
 
 /* =========================================================
-   NEW
+   NEW WORK
 ========================================================= */
 
-$("newButton")
-  .addEventListener(
-    "click",
-    ()=>{
-      $("newModal")
-        .classList
-        .add("open");
-    }
-  );
+$("newButton").addEventListener(
+  "click",
+  ()=>{
+    $("newModal")
+      .classList
+      .add("open");
+  }
+);
 
 
-$("cancelNew")
-  .addEventListener(
-    "click",
-    ()=>{
-      $("newModal")
-        .classList
-        .remove("open");
-    }
-  );
+$("cancelNew").addEventListener(
+  "click",
+  ()=>{
+    $("newModal")
+      .classList
+      .remove("open");
+  }
+);
 
 
-$("createNew")
-  .addEventListener(
-    "click",
-    ()=>{
+$("createNew").addEventListener(
+  "click",
+  ()=>{
 
-      clearTimeout(
-        animationTimer
-      );
+    clearTimeout(
+      animationTimer
+    );
 
-      animationToken++;
+    animationToken++;
 
+    state =
+      createDefaultState();
 
-      state =
-        createDefaultState();
+    state.title =
+      $("newTitle").value ||
+      "新しい物語";
 
+    $("editor").value =
+      "";
 
-      state.title =
-        $("newTitle").value ||
-        "新しい物語";
+    displayedPreviewText =
+      "";
 
+    pages =
+      [""];
 
-      $("editor").value =
-        "";
+    currentPage =
+      0;
 
+    $("preview").textContent =
+      "";
 
-      displayedPreviewText =
-        "";
+    $("newModal")
+      .classList
+      .remove("open");
 
+    render();
 
-      $("preview").textContent =
-        "";
+    applySettings();
 
+    updatePageIndicator();
 
-      $("readerViewport")
-        .scrollLeft = 0;
+    saveState();
 
-
-      currentPage = 1;
-
-
-      $("newModal")
-        .classList
-        .remove("open");
-
-
-      render();
-
-      applySettings();
-
-      saveState();
-
-    }
-  );
+  }
+);
 
 
 /* =========================================================
    ADD CHAPTER
 ========================================================= */
 
-$("addChapter")
-  .addEventListener(
-    "click",
-    ()=>{
+$("addChapter").addEventListener(
+  "click",
+  ()=>{
 
-      clearTimeout(
-        animationTimer
-      );
+    clearTimeout(
+      animationTimer
+    );
 
-      animationToken++;
+    animationToken++;
 
+    syncEditor();
 
-      syncEditor();
+    const number =
+      state.chapters.length + 1;
 
+    state.chapters.push({
 
-      const number =
-        state.chapters.length + 1;
+      title:
+        "第" +
+        number +
+        "章",
 
+      text:""
 
-      state.chapters.push({
+    });
 
-        title:
-          "第" +
-          number +
-          "章",
+    state.activeChapter =
+      state.chapters.length - 1;
 
-        text:""
+    $("editor").value =
+      "";
 
-      });
+    displayedPreviewText =
+      "";
 
+    pages =
+      [""];
 
-      state.activeChapter =
-        state.chapters.length - 1;
+    currentPage =
+      0;
 
+    $("preview").textContent =
+      "";
 
-      $("editor").value =
-        "";
+    render();
 
+    updatePageIndicator();
 
-      displayedPreviewText =
-        "";
+    scheduleSave();
 
-
-      $("preview").textContent =
-        "";
-
-
-      $("readerViewport")
-        .scrollLeft = 0;
-
-
-      currentPage = 1;
-
-
-      render();
-
-      scheduleSave();
-
-    }
-  );
+  }
+);
 
 
 /* =========================================================
@@ -2323,248 +2685,178 @@ $("addChapter")
 
 function enterReadingMode(){
 
-  readingModeActive = true;
+  syncEditor();
 
+  buildPages();
 
   $("reader")
     .classList
     .add("reading");
 
-
   $("readingMode")
     .classList
     .add("active");
-
 
   $("writeMode")
     .classList
     .remove("active");
 
-
   $("mobilePreview")
     .classList
     .remove("active");
 
-
   /*
-    読書開始時は本文の右端から。
+    読書開始時は現在章の最初のページ。
   */
 
-  requestAnimationFrame(
-    ()=>{
+  currentPage = 0;
 
-      const viewport =
-        $("readerViewport");
+  pages =
+    splitTextIntoPages(
+      currentChapter().text
+    );
 
-
-      viewport.scrollLeft =
-        0;
-
-
-      currentPage = 1;
-
-
-      updatePageIndicator();
-
-    }
+  renderCurrentPage(
+    false
   );
+
+  updatePageIndicator();
 
 }
 
 
 function exitReadingMode(){
 
-  readingModeActive = false;
-
-
   $("reader")
     .classList
     .remove("reading");
-
-
-  $("readingMode")
-    .classList
-    .remove("active");
-
 
   $("writeMode")
     .classList
     .add("active");
 
-
-  /*
-    モバイルプレビューとして開いていた場合も
-    読書モード解除時には閉じる。
-  */
-
-  $("reader")
+  $("readingMode")
     .classList
-    .remove("mobile-preview");
+    .remove("active");
+
+  $("mobilePreview")
+    .classList
+    .remove("active");
 
 }
 
 
-$("readingMode")
-  .addEventListener(
-    "click",
-    enterReadingMode
-  );
+$("readingMode").addEventListener(
+  "click",
+  enterReadingMode
+);
 
 
-$("writeMode")
-  .addEventListener(
-    "click",
-    exitReadingMode
-  );
+$("writeMode").addEventListener(
+  "click",
+  exitReadingMode
+);
 
 
-$("exitReading")
-  .addEventListener(
-    "click",
-    exitReadingMode
-  );
-
-
-$("mobilePreview")
-  .addEventListener(
-    "click",
-    ()=>{
-
-      if(readingModeActive){
-        return;
-      }
-
-      $("reader")
-        .classList
-        .toggle(
-          "mobile-preview"
-        );
-
-    }
-  );
+$("readerClose").addEventListener(
+  "click",
+  exitReadingMode
+);
 
 
 /* =========================================================
-   WHEEL PAGE NAVIGATION
+   MOBILE PREVIEW
 ========================================================= */
 
-/*
-  読書モードでは縦ホイールを
-  横方向のページ送りに変換する。
+$("mobilePreview").addEventListener(
+  "click",
+  ()=>{
 
-  これで長編でも、
-  「下へ延々スクロール」ではなく
-  「ページを送る」感覚になる。
-*/
-
-$("readerViewport")
-  .addEventListener(
-    "wheel",
-    event=>{
-
-      if(!readingModeActive){
-        return;
-      }
-
-      if(
-        Math.abs(event.deltaY) >
-        Math.abs(event.deltaX)
-      ){
-
-        event.preventDefault();
-
-        const direction =
-          event.deltaY > 0
-            ? 1
-            : -1;
-
-        movePage(direction);
-
-      }
-
-    },
-    {passive:false}
-  );
-
-
-/* =========================================================
-   KEYBOARD
-========================================================= */
-
-document.addEventListener(
-  "keydown",
-  event=>{
+    const reader =
+      $("reader");
 
     if(
-      (event.ctrlKey ||
-       event.metaKey) &&
-      event.key.toLowerCase() === "s"
+      reader.classList.contains(
+        "mobile-preview"
+      )
     ){
 
-      event.preventDefault();
-
-      saveState();
-
-    }
-
-
-    if(
-      event.key === "Escape"
-    ){
-
-      document
-        .querySelectorAll(
-          ".modal-bg.open"
-        )
-        .forEach(
-          modal =>
-            modal.classList.remove(
-              "open"
-            )
-        );
-
-
-      if(readingModeActive){
-
-        exitReadingMode();
-
-      }
+      reader.classList.remove(
+        "mobile-preview"
+      );
 
       return;
 
     }
 
+    reader.classList.add(
+      "mobile-preview"
+    );
+
+    buildPages();
+
+  }
+);
+
+
+/* =========================================================
+   TOUCH SWIPE
+========================================================= */
+
+$("previewStage").addEventListener(
+  "touchstart",
+  event=>{
+
+    if(!event.touches.length){
+      return;
+    }
+
+    touchStartX =
+      event.touches[0].clientX;
+
+  },
+  {passive:true}
+);
+
+
+$("previewStage").addEventListener(
+  "touchend",
+  event=>{
+
+    if(!touchStartX){
+      return;
+    }
+
+    const endX =
+      event.changedTouches[0].clientX;
+
+    const diff =
+      endX - touchStartX;
+
+    touchStartX = 0;
+
+    if(Math.abs(diff) < 45){
+      return;
+    }
 
     /*
-      読書モード中のページ送り。
+      縦書き読書では
+      左へスワイプ = 次
+      右へスワイプ = 前
     */
 
-    if(readingModeActive){
+    if(diff < 0){
 
-      if(
-        event.key === "ArrowLeft"
-      ){
+      nextPage();
 
-        event.preventDefault();
+    }else{
 
-        movePage(-1);
-
-      }
-
-
-      if(
-        event.key === "ArrowRight"
-      ){
-
-        event.preventDefault();
-
-        movePage(1);
-
-      }
+      prevPage();
 
     }
 
-  }
+  },
+  {passive:true}
 );
 
 
@@ -2586,37 +2878,29 @@ function downloadFile(
       }
     );
 
-
   const url =
     URL.createObjectURL(
       blob
     );
-
 
   const link =
     document.createElement(
       "a"
     );
 
-
   link.href =
     url;
 
-
   link.download =
     filename;
-
 
   document.body.appendChild(
     link
   );
 
-
   link.click();
 
-
   link.remove();
-
 
   setTimeout(
     ()=>{
@@ -2630,97 +2914,129 @@ function downloadFile(
 }
 
 
-$("exportTxt")
-  .addEventListener(
-    "click",
-    ()=>{
+$("exportTxt").addEventListener(
+  "click",
+  ()=>{
 
-      syncEditor();
+    syncEditor();
 
+    const text =
+      state.chapters
+        .map(
+          chapter =>
+            chapter.title +
+            "\n\n" +
+            chapter.text
+        )
+        .join(
+          "\n\n"
+        );
 
-      const text =
-        state.chapters
-          .map(
-            chapter =>
-              chapter.title +
-              "\n\n" +
-              chapter.text
-          )
-          .join(
-            "\n\n"
-          );
+    downloadFile(
+      state.title +
+      ".txt",
 
+      text,
 
-      downloadFile(
-        state.title +
-        ".txt",
-        text,
-        "text/plain;charset=utf-8"
-      );
+      "text/plain;charset=utf-8"
+    );
 
-    }
-  );
-
-
-$("exportHtml")
-  .addEventListener(
-    "click",
-    ()=>{
-
-      syncEditor();
+  }
+);
 
 
-      const body =
-        state.chapters
-          .map(
-            chapter =>
+$("exportHtml").addEventListener(
+  "click",
+  ()=>{
 
-              "<h2>" +
-              escapeHtml(
-                chapter.title
-              ) +
-              "</h2>" +
+    syncEditor();
 
-              "<div class='novel'>" +
-              escapeHtml(
-                chapter.text
-              ).replace(
-                /\n/g,
-                "<br>"
-              ) +
-              "</div>"
-          )
-          .join("");
+    const body =
+      state.chapters
+        .map(
+          chapter =>
 
+            `
+            <section class="chapter">
+              <h2>${escapeHtml(chapter.title)}</h2>
+              <div class="novel">${escapeHtml(chapter.text).replace(/\n/g,"<br>")}</div>
+            </section>
+            `
+        )
+        .join("");
 
-      const html =
+    const html =
 `<!doctype html>
 <html lang="ja">
 <head>
+
 <meta charset="utf-8">
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1">
+
 <title>${escapeHtml(state.title)}</title>
 
 <style>
 
+html,
 body{
   margin:0;
-  background:#ddd;
+  width:100%;
+  min-height:100%;
+}
+
+body{
+  background:#d9d5cc;
+  color:#252525;
 }
 
 .page{
   min-height:100vh;
+
   padding:60px;
+
   background:#f7f3ea;
-  color:#252525;
+}
+
+h1{
+  writing-mode:vertical-rl;
+
+  font-family:
+    "Yu Mincho",
+    "Hiragino Mincho ProN",
+    "Noto Serif JP",
+    serif;
+
+  margin:0 0 40px;
+
+  font-size:32px;
+}
+
+.chapter{
+  margin-bottom:70px;
+}
+
+.chapter h2{
+  writing-mode:vertical-rl;
+
+  font-family:
+    "Yu Mincho",
+    "Hiragino Mincho ProN",
+    "Noto Serif JP",
+    serif;
 }
 
 .novel{
   writing-mode:vertical-rl;
+
   text-orientation:mixed;
 
   white-space:pre-wrap;
 
-  height:85vh;
+  height:80vh;
+
+  overflow:auto;
 
   font-family:
     "Yu Mincho",
@@ -2736,6 +3052,7 @@ body{
 }
 
 </style>
+
 </head>
 
 <body>
@@ -2751,14 +3068,194 @@ ${body}
 </main>
 
 </body>
+
 </html>`;
 
+    downloadFile(
+      state.title +
+      ".html",
 
-      downloadFile(
-        state.title +
-        ".html",
-        html,
-        "text/html;charset=utf-8"
+      html,
+
+      "text/html;charset=utf-8"
+    );
+
+  }
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event=>{
+
+    /*
+      Ctrl / Cmd + S
+    */
+
+    if(
+      (event.ctrlKey ||
+       event.metaKey) &&
+      event.key.toLowerCase() === "s"
+    ){
+
+      event.preventDefault();
+
+      saveState();
+
+      return;
+
+    }
+
+
+    /*
+      Escape
+    */
+
+    if(
+      event.key === "Escape"
+    ){
+
+      document
+        .querySelectorAll(
+          ".modal-bg.open"
+        )
+        .forEach(
+          modal =>
+            modal.classList.remove(
+              "open"
+            )
+        );
+
+      if(
+        $("reader")
+          .classList
+          .contains("reading")
+      ){
+
+        exitReadingMode();
+
+      }
+
+      return;
+
+    }
+
+
+    /*
+      読書モード中だけ
+      ページ送りを有効化。
+    */
+
+    if(
+      $("reader")
+        .classList
+        .contains("reading")
+    ){
+
+      /*
+        矢印
+      */
+
+      if(
+        event.key === "ArrowLeft" ||
+        event.key.toLowerCase() === "d"
+      ){
+
+        event.preventDefault();
+
+        nextPage();
+
+        return;
+
+      }
+
+      if(
+        event.key === "ArrowRight" ||
+        event.key.toLowerCase() === "a"
+      ){
+
+        event.preventDefault();
+
+        prevPage();
+
+        return;
+
+      }
+
+      /*
+        Space
+      */
+
+      if(
+        event.code === "Space"
+      ){
+
+        event.preventDefault();
+
+        nextPage();
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+let resizeTimer = null;
+
+window.addEventListener(
+  "resize",
+  ()=>{
+
+    clearTimeout(
+      resizeTimer
+    );
+
+    resizeTimer =
+      setTimeout(
+        ()=>{
+          buildPages();
+        },
+        150
+      );
+
+  }
+);
+
+
+/* =========================================================
+   MODAL BACKDROP
+========================================================= */
+
+document
+  .querySelectorAll(".modal-bg")
+  .forEach(
+    modal=>{
+
+      modal.addEventListener(
+        "click",
+        event=>{
+
+          if(
+            event.target === modal
+          ){
+
+            modal.classList.remove(
+              "open"
+            );
+
+          }
+
+        }
       );
 
     }
@@ -2772,18 +3269,23 @@ ${body}
 $("editor").value =
   currentChapter().text;
 
-
 displayedPreviewText =
   currentChapter().text;
 
+pages =
+  splitTextIntoPages(
+    currentChapter().text
+  );
 
-$("preview").textContent =
-  displayedPreviewText;
-
+currentPage = 0;
 
 render();
 
 applySettings();
+
+renderCurrentPage(
+  false
+);
 
 updatePageIndicator();
 
