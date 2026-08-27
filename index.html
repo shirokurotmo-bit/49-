@@ -10,18 +10,19 @@
   --bg:#0b0d10;
   --panel:#11151a;
   --panel2:#171c22;
+  --panel3:#1c232b;
   --line:#2b333d;
   --text:#edf1f5;
   --muted:#8d98a5;
   --accent:#9abfff;
 
   --paper:#f7f3ea;
-  --paper2:#f1ece2;
+  --paper2:#eee8dc;
   --ink:#252525;
+  --paper-muted:#77716a;
 
-  --page-width:1100px;
-  --page-padding-x:70px;
-  --page-padding-y:55px;
+  --header:58px;
+  --footer:30px;
 }
 
 *{
@@ -41,6 +42,8 @@ body{
   color:var(--text);
   font-family:
     system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
     "Noto Sans JP",
     sans-serif;
 }
@@ -56,6 +59,14 @@ button{
   cursor:pointer;
 }
 
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+}
+
 /* =========================================================
    APP
 ========================================================= */
@@ -65,7 +76,10 @@ button{
   height:100dvh;
 
   display:grid;
-  grid-template-rows:58px minmax(0,1fr) 30px;
+  grid-template-rows:
+    var(--header)
+    minmax(0,1fr)
+    var(--footer);
 }
 
 /* =========================================================
@@ -73,6 +87,9 @@ button{
 ========================================================= */
 
 .topbar{
+  position:relative;
+  z-index:100;
+
   display:flex;
   align-items:center;
   gap:14px;
@@ -81,11 +98,11 @@ button{
 
   background:rgba(17,21,26,.98);
   border-bottom:1px solid var(--line);
-
-  z-index:200;
 }
 
 .brand{
+  flex:none;
+
   font-size:15px;
   font-weight:800;
   white-space:nowrap;
@@ -96,7 +113,7 @@ button{
 }
 
 .title-input{
-  width:min(360px,35vw);
+  width:min(380px,35vw);
 
   padding:7px 0;
 
@@ -128,9 +145,9 @@ button{
   color:var(--text);
 
   transition:
-    background .15s ease,
-    border-color .15s ease,
-    transform .12s ease;
+    background .15s,
+    border-color .15s,
+    transform .1s;
 }
 
 .btn:hover,
@@ -146,9 +163,12 @@ button{
 .btn-primary{
   background:#dce9ff;
   border-color:#dce9ff;
-
   color:#182237;
   font-weight:700;
+}
+
+.btn-primary:hover{
+  background:#eef5ff;
 }
 
 /* =========================================================
@@ -156,12 +176,13 @@ button{
 ========================================================= */
 
 .workspace{
+  min-width:0;
   min-height:0;
 
   display:grid;
   grid-template-columns:
-    minmax(0,1.15fr)
-    minmax(380px,.85fr);
+    minmax(0,1.18fr)
+    minmax(360px,.82fr);
 }
 
 /* =========================================================
@@ -176,7 +197,6 @@ button{
   grid-template-rows:46px minmax(0,1fr);
 
   background:#d9d5cc;
-
   border-right:1px solid var(--line);
 
   overflow:hidden;
@@ -189,10 +209,16 @@ button{
 
   padding:0 14px;
 
-  background:rgba(247,243,234,.96);
+  background:rgba(247,243,234,.97);
   color:#444;
 
   border-bottom:1px solid #c9c2b7;
+}
+
+.reader-header-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
 .reader-header strong{
@@ -204,71 +230,144 @@ button{
   font-size:11px;
 }
 
+.reader-position{
+  min-width:70px;
+  text-align:right;
+}
+
 /* =========================================================
    READER VIEWPORT
 ========================================================= */
 
 .reader-viewport{
+  position:relative;
+
   min-width:0;
   min-height:0;
 
-  overflow:auto;
+  overflow-x:auto;
+  overflow-y:hidden;
 
   padding:28px;
 
-  display:flex;
-  align-items:flex-start;
+  background:
+    radial-gradient(
+      circle at center,
+      #e1ddd4 0,
+      #d8d3c9 100%
+    );
 
   direction:ltr;
 
-  scroll-behavior:smooth;
+  overscroll-behavior-x:contain;
+
+  scrollbar-width:auto;
+
+  cursor:grab;
+
+  -webkit-overflow-scrolling:touch;
+
+  touch-action:pan-x;
+}
+
+.reader-viewport.dragging{
+  cursor:grabbing;
+  user-select:none;
+}
+
+.reader-viewport::-webkit-scrollbar{
+  height:13px;
+}
+
+.reader-viewport::-webkit-scrollbar-track{
+  background:#c3beb4;
+}
+
+.reader-viewport::-webkit-scrollbar-thumb{
+  background:#888177;
+  border-radius:20px;
+  border:3px solid #c3beb4;
+}
+
+.reader-viewport::-webkit-scrollbar-thumb:hover{
+  background:#6f6961;
 }
 
 /*
-  読書エリアではページを縦方向に十分大きくする。
-  横方向は本文の列数に応じて自動拡張。
+  重要:
+  ここを横方向の「原稿キャンバス」にする。
+
+  width:max-content により、
+  縦書き本文が増えた分だけ原稿面自体が横へ広がる。
 */
 
-.book{
+.reader-canvas{
   position:relative;
-
-  min-height:calc(100% - 1px);
 
   width:max-content;
   min-width:100%;
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0,0,0,.025),
-      transparent 8%,
-      transparent 92%,
-      rgba(0,0,0,.025)
-    ),
-    var(--paper);
+  height:100%;
+  min-height:100%;
 
+  display:flex;
+  justify-content:flex-start;
+  align-items:stretch;
+}
+
+/* =========================================================
+   BOOK
+========================================================= */
+
+.book{
+  position:relative;
+
+  flex:none;
+
+  width:max-content;
+  min-width:100%;
+
+  height:100%;
+
+  background:var(--paper);
   color:var(--ink);
 
-  padding:
-    var(--page-padding-y)
-    var(--page-padding-x);
+  padding:48px 64px;
 
   box-shadow:
     0 18px 55px rgba(0,0,0,.22);
 
-  display:flex;
-  flex-direction:column;
-
-  align-items:flex-end;
-
   overflow:visible;
 }
 
-/* =========================================================
-   TITLE
-========================================================= */
+/*
+  上部情報。
+  縦書き本文とは別レイヤー。
+*/
+
+.book-header{
+  position:absolute;
+
+  top:18px;
+  left:28px;
+
+  display:flex;
+  align-items:center;
+  gap:12px;
+
+  color:var(--paper-muted);
+
+  font-size:11px;
+
+  white-space:nowrap;
+}
 
 .book-title{
+  position:absolute;
+
+  top:44px;
+  left:54px;
+
   writing-mode:vertical-rl;
   text-orientation:mixed;
 
@@ -283,44 +382,53 @@ button{
 
   line-height:1.8;
 
-  align-self:flex-start;
-
-  margin-bottom:20px;
-
   white-space:nowrap;
 }
-
-.book-meta{
-  align-self:flex-start;
-
-  color:#777;
-
-  font-size:12px;
-
-  margin-bottom:20px;
-
-  white-space:nowrap;
-}
-
-/* =========================================================
-   VERTICAL NOVEL
-========================================================= */
 
 /*
-  ここが今回の重要部分。
+  本文専用のラッパー。
 
-  以前は min-height:65% だったため、
-  ページのかなりの部分を使わずに
-  早々に次の列へ移っていた。
+  高さは画面に収め、
+  横幅はJavaScriptで本文の列数に応じて決定する。
+*/
 
-  今回は本文領域をページの残りいっぱいまで使用。
+.vertical-stage{
+  position:absolute;
+
+  top:42px;
+  right:64px;
+  bottom:42px;
+  left:220px;
+
+  height:calc(100% - 84px);
+
+  overflow:visible;
+}
+
+/*
+  実際の縦書き本文。
+
+  height固定
+  width:max-content
+
+  が重要。
 */
 
 .vertical-text{
+  position:absolute;
+
+  top:0;
+  right:0;
+
   writing-mode:vertical-rl;
   text-orientation:mixed;
 
   direction:ltr;
+
+  height:100%;
+  width:max-content;
+
+  min-width:max-content;
 
   white-space:pre-wrap;
 
@@ -331,41 +439,23 @@ button{
     serif;
 
   font-size:18px;
-
   line-height:1.9;
-
   letter-spacing:.08em;
-
-  /*
-    高さを固定することで、
-    長文が無限に下へ伸びず、
-    縦列が左方向へ自動的に送られる。
-  */
-  height:
-    calc(
-      100dvh
-      - 58px
-      - 30px
-      - 46px
-      - (var(--page-padding-y) * 2)
-      - 72px
-    );
-
-  min-height:520px;
-
-  /*
-    横幅は文字量に応じて必要な分だけ確保。
-  */
-  width:max-content;
-
-  min-width:0;
 
   overflow:visible;
 
-  /*
-    日本語縦書きの列間。
-  */
-  column-gap:0;
+  word-break:normal;
+
+  user-select:text;
+}
+
+/*
+  本文が空の場合でも原稿面を確保。
+*/
+
+.vertical-text.empty{
+  min-width:1px;
+  min-height:1px;
 }
 
 /* =========================================================
@@ -423,6 +513,65 @@ button{
 }
 
 /* =========================================================
+   READER CONTROLS
+========================================================= */
+
+.reader-controls{
+  position:absolute;
+
+  left:50%;
+  bottom:22px;
+
+  transform:translateX(-50%);
+
+  z-index:20;
+
+  display:flex;
+  align-items:center;
+  gap:6px;
+
+  padding:6px;
+
+  background:rgba(20,22,24,.84);
+
+  border:1px solid rgba(255,255,255,.12);
+
+  border-radius:10px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.2);
+
+  backdrop-filter:blur(12px);
+}
+
+.reader-control{
+  width:38px;
+  height:32px;
+
+  border:0;
+  border-radius:6px;
+
+  background:transparent;
+  color:#fff;
+
+  font-size:16px;
+}
+
+.reader-control:hover{
+  background:rgba(255,255,255,.1);
+}
+
+.reader-control-label{
+  padding:0 8px;
+
+  color:#d9d9d9;
+
+  font-size:11px;
+
+  white-space:nowrap;
+}
+
+/* =========================================================
    WRITER
 ========================================================= */
 
@@ -436,10 +585,13 @@ button{
   grid-template-rows:50px minmax(0,1fr);
 }
 
+/* =========================================================
+   TOOLBAR
+========================================================= */
+
 .toolbar{
   display:flex;
   align-items:center;
-
   gap:6px;
 
   padding:0 10px;
@@ -462,22 +614,27 @@ button{
 .tool:hover{
   background:#1b222a;
   border-color:var(--line);
-
   color:var(--text);
 }
 
 /* =========================================================
-   EDITOR
+   EDITOR AREA
 ========================================================= */
 
 .editor-area{
+  min-width:0;
   min-height:0;
 
   display:grid;
   grid-template-columns:190px minmax(0,1fr);
 }
 
+/* =========================================================
+   CHAPTER LIST
+========================================================= */
+
 .chapter-list{
+  min-width:0;
   min-height:0;
 
   overflow:auto;
@@ -501,21 +658,19 @@ button{
   display:block;
 
   margin-bottom:5px;
-
   padding:10px;
 
   border:1px solid transparent;
   border-radius:8px;
 
   background:transparent;
-
   color:#b7c0ca;
 
   text-align:left;
 
   transition:
-    background .15s ease,
-    border-color .15s ease;
+    background .15s,
+    border-color .15s;
 }
 
 .chapter:hover{
@@ -524,10 +679,20 @@ button{
 
 .chapter.active{
   background:#202833;
-
   border-color:#364251;
-
   color:#fff;
+}
+
+.chapter-title-row{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.chapter-title{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .chapter small{
@@ -539,6 +704,10 @@ button{
 
   font-size:10px;
 }
+
+/* =========================================================
+   EDITOR
+========================================================= */
 
 .editor-wrapper{
   min-width:0;
@@ -556,22 +725,18 @@ button{
   border:0;
   outline:0;
 
-  padding:
-    30px
-    32px
-    80px;
+  padding:30px 32px 80px;
 
   background:#101419;
-
   color:#edf1f5;
 
   font-size:17px;
-
   line-height:1.95;
-
   letter-spacing:.02em;
 
   overflow:auto;
+
+  tab-size:2;
 }
 
 #editor::selection{
@@ -584,6 +749,9 @@ button{
 
   right:14px;
   bottom:12px;
+
+  display:flex;
+  align-items:center;
 
   padding:5px 8px;
 
@@ -625,16 +793,14 @@ button{
 
 .modal-bg{
   position:fixed;
-
   inset:0;
 
   display:none;
-
   place-items:center;
 
   background:rgba(0,0,0,.62);
 
-  z-index:500;
+  z-index:1000;
 }
 
 .modal-bg.open{
@@ -647,7 +813,6 @@ button{
   padding:20px;
 
   border:1px solid var(--line);
-
   border-radius:13px;
 
   background:#161b21;
@@ -664,7 +829,6 @@ button{
 
 .field{
   display:grid;
-
   gap:6px;
 
   margin-bottom:12px;
@@ -672,7 +836,6 @@ button{
 
 .field label{
   color:var(--muted);
-
   font-size:12px;
 }
 
@@ -683,19 +846,16 @@ button{
   padding:9px;
 
   border:1px solid var(--line);
-
   border-radius:7px;
 
   outline:0;
 
   background:#0e1216;
-
   color:var(--text);
 }
 
 .field-row{
   display:grid;
-
   grid-template-columns:1fr 1fr;
 
   gap:10px;
@@ -703,9 +863,7 @@ button{
 
 .modal-actions{
   display:flex;
-
   justify-content:flex-end;
-
   gap:7px;
 
   margin-top:16px;
@@ -715,78 +873,80 @@ button{
    READING MODE
 ========================================================= */
 
-/*
-  読書モードは「readerを上に被せる」だけ。
-  以前の実装では戻る導線が弱かったので、
-  専用の終了ボタンも追加する。
-*/
+body.reading-mode .topbar{
+  display:none;
+}
+
+body.reading-mode .workspace{
+  grid-template-columns:1fr;
+}
+
+body.reading-mode .writer{
+  display:none;
+}
 
 .reader.reading{
   position:fixed;
 
-  inset:58px 0 30px;
+  inset:0;
 
-  z-index:150;
-
-  border:0;
+  z-index:500;
 
   display:grid;
 
-  grid-template-rows:minmax(0,1fr);
+  grid-template-rows:46px minmax(0,1fr);
 
-  background:#d9d5cc;
+  border:0;
 }
 
 .reader.reading .reader-header{
-  display:none;
+  display:flex;
 }
 
 .reader.reading .reader-viewport{
-  padding:35px 50px;
+  padding:34px 50px 48px;
 }
 
 .reader.reading .book{
   min-height:100%;
-
-  box-shadow:
-    0 8px 35px rgba(0,0,0,.15);
 }
 
-/* =========================================================
-   READING EXIT
-========================================================= */
+.reader.reading .reader-controls{
+  bottom:22px;
+}
 
-.reading-exit{
-  position:fixed;
+/*
+  読書モード専用の戻るボタン。
+*/
 
-  top:72px;
-  right:22px;
-
-  z-index:300;
-
+.reading-back{
   display:none;
 
-  padding:8px 12px;
+  position:absolute;
+
+  top:9px;
+  left:12px;
+
+  z-index:50;
+
+  padding:7px 11px;
 
   border:1px solid rgba(0,0,0,.15);
+  border-radius:7px;
 
-  border-radius:8px;
+  background:rgba(255,255,255,.72);
 
-  background:rgba(30,30,30,.82);
-
-  color:#fff;
-
-  backdrop-filter:blur(8px);
+  color:#333;
 
   font-size:12px;
 }
 
-body.reading-mode .reading-exit{
+.reader.reading .reading-back{
   display:block;
 }
 
 /* =========================================================
-   MOBILE
+   MOBILE PREVIEW
 ========================================================= */
 
 @media(max-width:900px){
@@ -804,9 +964,9 @@ body.reading-mode .reading-exit{
 
     position:fixed;
 
-    inset:58px 0 30px;
+    inset:var(--header) 0 var(--footer);
 
-    z-index:150;
+    z-index:500;
 
     border:0;
   }
@@ -816,37 +976,45 @@ body.reading-mode .reading-exit{
   }
 
   .reader.mobile-preview .reader-viewport{
-    padding:15px;
+    padding:16px;
   }
 
-  .reader.mobile-preview .book{
-    padding:30px 25px;
-  }
-
-  .reader.mobile-preview .vertical-text{
-    height:
-      calc(
-        100dvh
-        - 58px
-        - 30px
-        - 30px
-        - 60px
-      );
-
-    min-height:420px;
-  }
 }
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media(max-width:760px){
+
+  .title-input{
+    width:30vw;
+  }
+
+  .editor-area{
+    grid-template-columns:130px minmax(0,1fr);
+  }
+
+  .book{
+    padding-left:42px;
+    padding-right:42px;
+  }
+
+  .vertical-stage{
+    left:170px;
+    right:42px;
+  }
+
+}
+
+/* =========================================================
+   PHONE
+========================================================= */
 
 @media(max-width:620px){
 
-  :root{
-    --page-padding-x:28px;
-    --page-padding-y:30px;
-  }
-
   .topbar{
     padding:0 10px;
-
     gap:8px;
   }
 
@@ -856,7 +1024,6 @@ body.reading-mode .reading-exit{
 
   .title-input{
     width:30vw;
-
     font-size:13px;
   }
 
@@ -873,51 +1040,38 @@ body.reading-mode .reading-exit{
   }
 
   #editor{
-    padding:
-      20px
-      17px
-      70px;
-
+    padding:20px 17px 70px;
     font-size:16px;
   }
 
-  .reader-viewport{
-    padding:15px;
+  .reader.mobile-preview .reader-viewport{
+    padding:10px;
   }
 
-  .book{
-    padding:
-      28px
-      24px;
+  .reader.mobile-preview .book{
+    padding-left:24px;
+    padding-right:24px;
+  }
+
+  .reader.mobile-preview .vertical-stage{
+    left:120px;
+    right:24px;
   }
 
   .book-title{
-    font-size:25px;
+    left:22px;
+    top:38px;
+    font-size:24px;
   }
 
-  .vertical-text{
-    height:
-      calc(
-        100dvh
-        - 58px
-        - 30px
-        - 46px
-        - 60px
-      );
-
-    min-height:400px;
-
-    font-size:17px;
+  .book-header{
+    left:20px;
   }
 
-  .reader.reading .reader-viewport{
-    padding:20px 15px;
+  .reader-controls{
+    bottom:10px;
   }
 
-  .reading-exit{
-    top:66px;
-    right:12px;
-  }
 }
 
 /* =========================================================
@@ -931,7 +1085,9 @@ body.reading-mode .reading-exit{
   *::after{
     scroll-behavior:auto !important;
     animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
   }
+
 }
 </style>
 </head>
@@ -939,6 +1095,10 @@ body.reading-mode .reading-exit{
 <body>
 
 <div class="app">
+
+<!-- =======================================================
+     HEADER
+======================================================= -->
 
 <header class="topbar">
 
@@ -951,6 +1111,7 @@ body.reading-mode .reading-exit{
     class="title-input"
     value="新しい物語"
     placeholder="作品タイトル"
+    autocomplete="off"
   >
 
   <div class="header-actions">
@@ -958,6 +1119,7 @@ body.reading-mode .reading-exit{
     <button
       class="btn secondary"
       id="newButton"
+      type="button"
     >
       新規
     </button>
@@ -965,6 +1127,7 @@ body.reading-mode .reading-exit{
     <button
       class="btn secondary"
       id="settingsButton"
+      type="button"
     >
       設定
     </button>
@@ -972,6 +1135,7 @@ body.reading-mode .reading-exit{
     <button
       class="btn btn-primary"
       id="saveButton"
+      type="button"
     >
       保存
     </button>
@@ -981,7 +1145,15 @@ body.reading-mode .reading-exit{
 </header>
 
 
+<!-- =======================================================
+     WORKSPACE
+======================================================= -->
+
 <main class="workspace">
+
+<!-- =======================================================
+     READER
+======================================================= -->
 
 <section
   id="reader"
@@ -990,42 +1162,128 @@ body.reading-mode .reading-exit{
 
   <div class="reader-header">
 
-    <strong>
-      完成プレビュー
-    </strong>
+    <div class="reader-header-left">
 
-    <span id="totalCharacters">
+      <strong>
+        完成プレビュー
+      </strong>
+
+      <span id="previewChapter">
+        第一章
+      </span>
+
+    </div>
+
+    <span
+      class="reader-position"
+      id="totalCharacters"
+    >
       0字
     </span>
 
   </div>
 
 
-  <div class="reader-viewport">
+  <div
+    id="readerViewport"
+    class="reader-viewport"
+  >
 
-    <article class="book">
+    <div
+      id="readerCanvas"
+      class="reader-canvas"
+    >
+
+      <article class="book">
+
+        <div class="book-header">
+
+          <span>
+            縦読み小説 PRO
+          </span>
+
+          <span>
+            ・
+          </span>
+
+          <span id="bookMeta">
+            第一章　0字
+          </span>
+
+        </div>
+
+
+        <div
+          id="bookTitle"
+          class="book-title"
+        ></div>
+
+
+        <div
+          id="verticalStage"
+          class="vertical-stage"
+        >
+
+          <div
+            id="preview"
+            class="vertical-text empty"
+          ></div>
+
+        </div>
+
+      </article>
+
+    </div>
+
+
+    <!-- 読書操作 -->
+
+    <div class="reader-controls">
+
+      <button
+        id="readerPrev"
+        class="reader-control"
+        type="button"
+        title="左へ"
+      >
+        ←
+      </button>
 
       <div
-        id="bookTitle"
-        class="book-title"
-      ></div>
+        id="readerControlLabel"
+        class="reader-control-label"
+      >
+        ドラッグ / ホイール / ← →
+      </div>
 
-      <div
-        id="bookMeta"
-        class="book-meta"
-      ></div>
+      <button
+        id="readerNext"
+        class="reader-control"
+        type="button"
+        title="右へ"
+      >
+        →
+      </button>
 
-      <div
-        id="preview"
-        class="vertical-text"
-      ></div>
+    </div>
 
-    </article>
+
+    <button
+      id="readingBack"
+      class="reading-back"
+      type="button"
+    >
+      ← 執筆へ戻る
+    </button>
 
   </div>
 
 </section>
 
+
+<!-- =======================================================
+     WRITER
+======================================================= -->
 
 <section class="writer">
 
@@ -1034,6 +1292,7 @@ body.reading-mode .reading-exit{
     <button
       id="writeMode"
       class="tool active"
+      type="button"
     >
       執筆
     </button>
@@ -1041,6 +1300,7 @@ body.reading-mode .reading-exit{
     <button
       id="readingMode"
       class="tool"
+      type="button"
     >
       読書
     </button>
@@ -1048,6 +1308,7 @@ body.reading-mode .reading-exit{
     <button
       id="mobilePreview"
       class="tool"
+      type="button"
     >
       プレビュー
     </button>
@@ -1055,13 +1316,31 @@ body.reading-mode .reading-exit{
     <button
       id="addChapter"
       class="tool"
+      type="button"
     >
       ＋章
     </button>
 
     <button
+      id="renameChapter"
+      class="tool"
+      type="button"
+    >
+      章名変更
+    </button>
+
+    <button
+      id="deleteChapter"
+      class="tool"
+      type="button"
+    >
+      章削除
+    </button>
+
+    <button
       id="exportTxt"
       class="tool"
+      type="button"
     >
       TXT
     </button>
@@ -1069,6 +1348,7 @@ body.reading-mode .reading-exit{
     <button
       id="exportHtml"
       class="tool"
+      type="button"
     >
       HTML
     </button>
@@ -1081,8 +1361,12 @@ body.reading-mode .reading-exit{
     <aside class="chapter-list">
 
       <div class="chapter-list-header">
+
         章
-        <span id="chapterCount">1</span>
+        <span id="chapterCount">
+          1
+        </span>
+
       </div>
 
       <div id="chapters"></div>
@@ -1095,8 +1379,9 @@ body.reading-mode .reading-exit{
       <textarea
         id="editor"
         spellcheck="false"
-        placeholder="ここに小説を書いてください。入力した文章は左側にリアルタイムで綴られていきます。"
+        placeholder="ここに小説を書いてください。入力した文章は左側にリアルタイムで縦書き表示されます。"
       ></textarea>
+
 
       <div class="editor-info">
 
@@ -1127,10 +1412,14 @@ body.reading-mode .reading-exit{
 </main>
 
 
+<!-- =======================================================
+     FOOTER
+======================================================= -->
+
 <footer class="footer">
 
   <span>
-    右端から左方向へ流れる縦書き
+    縦書き / 右端開始 / 横スクロール
   </span>
 
   <span
@@ -1145,17 +1434,9 @@ body.reading-mode .reading-exit{
 </div>
 
 
-<!-- READING EXIT -->
-
-<button
-  id="readingExit"
-  class="reading-exit"
->
-  ← 執筆画面へ戻る
-</button>
-
-
-<!-- SETTINGS -->
+<!-- =======================================================
+     SETTINGS MODAL
+======================================================= -->
 
 <div
   id="settingsModal"
@@ -1182,6 +1463,7 @@ body.reading-mode .reading-exit{
           type="number"
           min="12"
           max="40"
+          step="1"
         >
 
       </div>
@@ -1253,6 +1535,7 @@ body.reading-mode .reading-exit{
       <button
         class="btn"
         id="closeSettings"
+        type="button"
       >
         閉じる
       </button>
@@ -1264,7 +1547,9 @@ body.reading-mode .reading-exit{
 </div>
 
 
-<!-- NEW WORK -->
+<!-- =======================================================
+     NEW MODAL
+======================================================= -->
 
 <div
   id="newModal"
@@ -1277,6 +1562,7 @@ body.reading-mode .reading-exit{
       新しい作品
     </h2>
 
+
     <div class="field">
 
       <label>
@@ -1286,6 +1572,7 @@ body.reading-mode .reading-exit{
       <input
         id="newTitle"
         value="新しい物語"
+        autocomplete="off"
       >
 
     </div>
@@ -1296,6 +1583,7 @@ body.reading-mode .reading-exit{
       <button
         class="btn"
         id="cancelNew"
+        type="button"
       >
         キャンセル
       </button>
@@ -1303,8 +1591,64 @@ body.reading-mode .reading-exit{
       <button
         class="btn btn-primary"
         id="createNew"
+        type="button"
       >
         作成
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     CHAPTER NAME MODAL
+======================================================= -->
+
+<div
+  id="chapterModal"
+  class="modal-bg"
+>
+
+  <div class="modal">
+
+    <h2>
+      章名を変更
+    </h2>
+
+
+    <div class="field">
+
+      <label>
+        章タイトル
+      </label>
+
+      <input
+        id="chapterTitleInput"
+        autocomplete="off"
+      >
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="btn"
+        id="cancelChapter"
+        type="button"
+      >
+        キャンセル
+      </button>
+
+      <button
+        class="btn btn-primary"
+        id="saveChapterTitle"
+        type="button"
+      >
+        変更
       </button>
 
     </div>
@@ -1317,16 +1661,24 @@ body.reading-mode .reading-exit{
 <script>
 
 /* =========================================================
-   STATE
+   STORAGE
 ========================================================= */
 
 const STORAGE_KEY =
-  "vertical-novel-pro-animation-v2";
+  "vertical-novel-pro-v3";
 
+
+/* =========================================================
+   DOM
+========================================================= */
 
 const $ = id =>
   document.getElementById(id);
 
+
+/* =========================================================
+   STATE
+========================================================= */
 
 function createDefaultState(){
 
@@ -1345,16 +1697,77 @@ function createDefaultState(){
 
     settings:{
       fontSize:18,
-
       lineHeight:1.9,
-
       letterSpacing:.08,
-
       fontFamily:
         '"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'
     }
 
   };
+
+}
+
+
+function normalizeState(parsed){
+
+  const fallback =
+    createDefaultState();
+
+  if(
+    !parsed ||
+    !Array.isArray(parsed.chapters) ||
+    parsed.chapters.length === 0
+  ){
+    return fallback;
+  }
+
+  const normalized = {
+
+    title:
+      typeof parsed.title === "string"
+        ? parsed.title
+        : fallback.title,
+
+    activeChapter:
+      Number.isInteger(parsed.activeChapter)
+        ? parsed.activeChapter
+        : 0,
+
+    chapters:
+      parsed.chapters.map(
+        (chapter,index)=>({
+
+          title:
+            typeof chapter.title === "string" &&
+            chapter.title.trim()
+              ? chapter.title
+              : `第${index + 1}章`,
+
+          text:
+            typeof chapter.text === "string"
+              ? chapter.text
+              : ""
+
+        })
+      ),
+
+    settings:{
+      ...fallback.settings,
+      ...(parsed.settings || {})
+    }
+
+  };
+
+  normalized.activeChapter =
+    Math.max(
+      0,
+      Math.min(
+        normalized.activeChapter,
+        normalized.chapters.length - 1
+      )
+    );
+
+  return normalized;
 
 }
 
@@ -1369,37 +1782,19 @@ function loadState(){
       );
 
     if(!raw){
-
       return createDefaultState();
-
     }
 
-    const parsed =
-      JSON.parse(raw);
+    return normalizeState(
+      JSON.parse(raw)
+    );
 
-    if(
-      !parsed ||
-      !Array.isArray(parsed.chapters) ||
-      parsed.chapters.length === 0
-    ){
+  }catch(error){
 
-      return createDefaultState();
-
-    }
-
-    /*
-      古いデータにsettingsがない場合でも
-      初期値を補完する。
-    */
-
-    parsed.settings = {
-      ...createDefaultState().settings,
-      ...(parsed.settings || {})
-    };
-
-    return parsed;
-
-  }catch{
+    console.warn(
+      "保存データの読み込みに失敗しました。",
+      error
+    );
 
     return createDefaultState();
 
@@ -1416,7 +1811,7 @@ let saveTimer = null;
 
 
 /* =========================================================
-   ANIMATION
+   ANIMATION STATE
 ========================================================= */
 
 let animationTimer = null;
@@ -1426,25 +1821,21 @@ let displayedPreviewText = "";
 let animationToken = 0;
 
 
-function getAnimationSpeed(
-  addedLength
-){
+/* =========================================================
+   READER STATE
+========================================================= */
 
-  if(addedLength <= 5){
-    return 28;
-  }
+let isDragging = false;
 
-  if(addedLength <= 20){
-    return 18;
-  }
+let dragStartX = 0;
 
-  if(addedLength <= 80){
-    return 7;
-  }
+let dragStartScrollLeft = 0;
 
-  return 1;
+let touchStartX = 0;
 
-}
+let touchStartScrollLeft = 0;
+
+let suppressClick = false;
 
 
 /* =========================================================
@@ -1464,7 +1855,7 @@ function escapeHtml(text){
     /[&<>"']/g,
     char=>{
 
-      const map={
+      const map = {
 
         "&":"&amp;",
         "<":"&lt;",
@@ -1507,8 +1898,620 @@ function syncEditor(){
 
 
 /* =========================================================
-   PREVIEW ANIMATION
+   READER SCROLL
 ========================================================= */
+
+function getReaderViewport(){
+
+  return $("readerViewport");
+
+}
+
+
+function scrollReaderBy(amount){
+
+  const viewport =
+    getReaderViewport();
+
+  viewport.scrollBy({
+    left:amount,
+    behavior:"smooth"
+  });
+
+}
+
+
+function scrollReaderToStart(){
+
+  const viewport =
+    getReaderViewport();
+
+  /*
+    RTL / vertical writingでは
+    ブラウザごとにscrollLeftの初期値が
+    やや面倒なので、右端へ移動する。
+  */
+
+  viewport.scrollLeft =
+    viewport.scrollWidth;
+
+}
+
+
+function updateReaderPosition(){
+
+  const viewport =
+    getReaderViewport();
+
+  const max =
+    Math.max(
+      1,
+      viewport.scrollWidth -
+      viewport.clientWidth
+    );
+
+  /*
+    右端を0%
+    左端を100%
+    として読書位置を表示。
+  */
+
+  const position =
+    Math.round(
+      (
+        (viewport.scrollWidth -
+          viewport.clientWidth -
+          viewport.scrollLeft)
+        /
+        max
+      ) * 100
+    );
+
+  $("readerControlLabel").textContent =
+    `${Math.max(0,Math.min(100,position))}%`;
+
+}
+
+
+/* =========================================================
+   READER POINTER DRAG
+========================================================= */
+
+const readerViewport =
+  $("readerViewport");
+
+
+readerViewport.addEventListener(
+  "pointerdown",
+  event=>{
+
+    if(event.button !== 0){
+      return;
+    }
+
+    /*
+      ボタンなどを掴んだ場合は無視。
+    */
+
+    if(
+      event.target.closest(
+        "button"
+      )
+    ){
+      return;
+    }
+
+    isDragging = true;
+
+    dragStartX =
+      event.clientX;
+
+    dragStartScrollLeft =
+      readerViewport.scrollLeft;
+
+    readerViewport.classList.add(
+      "dragging"
+    );
+
+    readerViewport.setPointerCapture(
+      event.pointerId
+    );
+
+  }
+);
+
+
+readerViewport.addEventListener(
+  "pointermove",
+  event=>{
+
+    if(!isDragging){
+      return;
+    }
+
+    const distance =
+      event.clientX -
+      dragStartX;
+
+    if(Math.abs(distance) > 4){
+      suppressClick = true;
+    }
+
+    readerViewport.scrollLeft =
+      dragStartScrollLeft -
+      distance;
+
+  }
+);
+
+
+function finishPointerDrag(){
+
+  if(!isDragging){
+    return;
+  }
+
+  isDragging = false;
+
+  readerViewport.classList.remove(
+    "dragging"
+  );
+
+  setTimeout(
+    ()=>{
+      suppressClick = false;
+    },
+    80
+  );
+
+}
+
+
+readerViewport.addEventListener(
+  "pointerup",
+  finishPointerDrag
+);
+
+readerViewport.addEventListener(
+  "pointercancel",
+  finishPointerDrag
+);
+
+
+/* =========================================================
+   TOUCH SWIPE
+========================================================= */
+
+readerViewport.addEventListener(
+  "touchstart",
+  event=>{
+
+    if(!event.touches.length){
+      return;
+    }
+
+    touchStartX =
+      event.touches[0].clientX;
+
+    touchStartScrollLeft =
+      readerViewport.scrollLeft;
+
+  },
+  {
+    passive:true
+  }
+);
+
+
+readerViewport.addEventListener(
+  "touchmove",
+  event=>{
+
+    if(!event.touches.length){
+      return;
+    }
+
+    const distance =
+      event.touches[0].clientX -
+      touchStartX;
+
+    readerViewport.scrollLeft =
+      touchStartScrollLeft -
+      distance;
+
+  },
+  {
+    passive:true
+  }
+);
+
+
+/* =========================================================
+   WHEEL -> HORIZONTAL
+========================================================= */
+
+readerViewport.addEventListener(
+  "wheel",
+  event=>{
+
+    /*
+      縦書き読書では、
+      通常ホイールを横移動として扱う。
+
+      Shiftホイールや
+      トラックパッドのdeltaXも考慮。
+    */
+
+    const horizontal =
+      event.deltaX;
+
+    const vertical =
+      event.deltaY;
+
+    const amount =
+      Math.abs(horizontal) >
+      Math.abs(vertical)
+        ? horizontal
+        : vertical;
+
+    if(amount === 0){
+      return;
+    }
+
+    event.preventDefault();
+
+    readerViewport.scrollLeft +=
+      amount;
+
+    updateReaderPosition();
+
+  },
+  {
+    passive:false
+  }
+);
+
+
+/* =========================================================
+   KEYBOARD READER
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event=>{
+
+    /*
+      textarea入力中の左右キーは
+      読書スクロールに奪わない。
+    */
+
+    const tag =
+      document.activeElement?.tagName;
+
+    if(
+      tag === "TEXTAREA" ||
+      tag === "INPUT" ||
+      tag === "SELECT"
+    ){
+      return;
+    }
+
+    if(
+      document.body.classList.contains(
+        "reading-mode"
+      ) ||
+      $("reader").classList.contains(
+        "mobile-preview"
+      )
+    ){
+
+      if(event.key === "ArrowLeft"){
+
+        event.preventDefault();
+
+        scrollReaderBy(
+          -Math.max(
+            300,
+            readerViewport.clientWidth * .75
+          )
+        );
+
+      }
+
+      if(event.key === "ArrowRight"){
+
+        event.preventDefault();
+
+        scrollReaderBy(
+          Math.max(
+            300,
+            readerViewport.clientWidth * .75
+          )
+        );
+
+      }
+
+      if(event.key === "Home"){
+
+        event.preventDefault();
+
+        scrollReaderToStart();
+
+      }
+
+      if(event.key === "End"){
+
+        event.preventDefault();
+
+        readerViewport.scrollLeft = 0;
+
+      }
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   READER BUTTONS
+========================================================= */
+
+$("readerPrev").addEventListener(
+  "click",
+  event=>{
+
+    event.stopPropagation();
+
+    scrollReaderBy(
+      -Math.max(
+        350,
+        readerViewport.clientWidth * .75
+      )
+    );
+
+  }
+);
+
+
+$("readerNext").addEventListener(
+  "click",
+  event=>{
+
+    event.stopPropagation();
+
+    scrollReaderBy(
+      Math.max(
+        350,
+        readerViewport.clientWidth * .75
+      )
+    );
+
+  }
+);
+
+
+readerViewport.addEventListener(
+  "scroll",
+  ()=>{
+    updateReaderPosition();
+  },
+  {
+    passive:true
+  }
+);
+
+
+/* =========================================================
+   PREVIEW WIDTH CALCULATION
+========================================================= */
+
+/*
+  縦書きでは本文が増えると列が左方向へ増える。
+
+  scrollWidthを確実に発生させるため、
+  実際に描画された本文のbounding boxを測り、
+  原稿面の幅を必要量まで拡張する。
+*/
+
+function updateReaderCanvasWidth(){
+
+  const canvas =
+    $("readerCanvas");
+
+  const book =
+    document.querySelector(
+      ".book"
+    );
+
+  const stage =
+    $("verticalStage");
+
+  const preview =
+    $("preview");
+
+  if(
+    !canvas ||
+    !book ||
+    !stage ||
+    !preview
+  ){
+    return;
+  }
+
+  const text =
+    currentChapter()?.text || "";
+
+  const viewport =
+    getReaderViewport();
+
+  const viewportWidth =
+    Math.max(
+      1,
+      viewport.clientWidth
+    );
+
+  /*
+    空本文でも最低限の紙幅を確保。
+  */
+
+  if(!text){
+
+    preview.classList.add(
+      "empty"
+    );
+
+    book.style.width =
+      `${viewportWidth}px`;
+
+    canvas.style.width =
+      `${viewportWidth}px`;
+
+    return;
+
+  }
+
+  preview.classList.remove(
+    "empty"
+  );
+
+  /*
+    vertical-rl の実描画幅を取得。
+  */
+
+  const rect =
+    preview.getBoundingClientRect();
+
+  const stageRect =
+    stage.getBoundingClientRect();
+
+  /*
+    本文の左端がステージ左端から
+    どれだけ外へ出ているかを見る。
+  */
+
+  const requiredTextWidth =
+    Math.max(
+      rect.width,
+      stage.clientWidth
+    );
+
+  /*
+    余白を追加。
+  */
+
+  const horizontalPadding =
+    120;
+
+  const bookWidth =
+    Math.max(
+      viewportWidth,
+      220 +
+      requiredTextWidth +
+      horizontalPadding
+    );
+
+  book.style.width =
+    `${Math.ceil(bookWidth)}px`;
+
+  canvas.style.width =
+    `${Math.ceil(bookWidth)}px`;
+
+}
+
+
+/* =========================================================
+   AUTO FOLLOW
+========================================================= */
+
+function followLatestText(){
+
+  const viewport =
+    getReaderViewport();
+
+  /*
+    執筆中は右端を起点にする。
+  */
+
+  viewport.scrollLeft =
+    viewport.scrollWidth;
+
+  updateReaderPosition();
+
+}
+
+
+/* =========================================================
+   ANIMATION SPEED
+========================================================= */
+
+function getAnimationSpeed(
+  addedLength
+){
+
+  if(addedLength <= 5){
+    return 28;
+  }
+
+  if(addedLength <= 20){
+    return 18;
+  }
+
+  if(addedLength <= 80){
+    return 7;
+  }
+
+  if(addedLength <= 300){
+    return 2;
+  }
+
+  return 0;
+
+}
+
+
+/* =========================================================
+   PREVIEW RENDER
+========================================================= */
+
+function setPreviewTextImmediate(
+  text
+){
+
+  const preview =
+    $("preview");
+
+  clearTimeout(
+    animationTimer
+  );
+
+  animationToken++;
+
+  displayedPreviewText =
+    text;
+
+  preview.textContent =
+    text;
+
+  if(text){
+    preview.classList.remove(
+      "empty"
+    );
+  }else{
+    preview.classList.add(
+      "empty"
+    );
+  }
+
+  requestAnimationFrame(
+    ()=>{
+      updateReaderCanvasWidth();
+      updateReaderPosition();
+    }
+  );
+
+}
+
 
 function animatePreview(
   newText
@@ -1524,10 +2527,8 @@ function animatePreview(
   const preview =
     $("preview");
 
-
   /*
-    普通の文字追加なら
-    追加部分だけアニメーション。
+    普通の追加入力だけアニメーション。
   */
 
   if(
@@ -1546,9 +2547,6 @@ function animatePreview(
         oldText.length
       );
 
-    preview.textContent =
-      oldText;
-
     const characters =
       [...addedText];
 
@@ -1557,22 +2555,42 @@ function animatePreview(
         characters.length
       );
 
-    let index = 0;
+    /*
+      長文貼り付けなら即時表示。
+    */
 
+    if(speed === 0){
+
+      setPreviewTextImmediate(
+        newText
+      );
+
+      followLatestText();
+
+      return;
+
+    }
+
+    preview.textContent =
+      oldText;
+
+    preview.classList.remove(
+      "empty"
+    );
+
+    let index = 0;
 
     function typeNext(){
 
       if(
         token !== animationToken
       ){
-
         return;
-
       }
 
-
       if(
-        index >= characters.length
+        index >=
+        characters.length
       ){
 
         preview.textContent =
@@ -1581,12 +2599,16 @@ function animatePreview(
         displayedPreviewText =
           newText;
 
+        updateReaderCanvasWidth();
+
+        followLatestText();
+
         return;
 
       }
 
-
-      const current =
+      preview.textContent =
+        oldText +
         characters
           .slice(
             0,
@@ -1594,14 +2616,11 @@ function animatePreview(
           )
           .join("");
 
-
-      preview.textContent =
-        oldText +
-        current;
-
-
       index++;
 
+      updateReaderCanvasWidth();
+
+      followLatestText();
 
       animationTimer =
         setTimeout(
@@ -1611,23 +2630,178 @@ function animatePreview(
 
     }
 
-
     typeNext();
 
     return;
 
   }
 
-
   /*
     削除・途中編集・章変更など。
   */
 
-  displayedPreviewText =
-    newText;
+  setPreviewTextImmediate(
+    newText
+  );
 
-  preview.textContent =
-    newText;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+function updateStats(){
+
+  const chapter =
+    currentChapter();
+
+  if(!chapter){
+    return;
+  }
+
+  const text =
+    chapter.text;
+
+  $("characterCount").textContent =
+    characterLength(
+      text
+    ).toLocaleString() +
+    "字";
+
+  $("lineCount").textContent =
+    (
+      text
+        ? text.split("\n").length
+        : 0
+    ).toLocaleString() +
+    "行";
+
+  $("bookMeta").textContent =
+    chapter.title +
+    "　" +
+    characterLength(
+      text
+    ).toLocaleString() +
+    "字";
+
+  $("previewChapter").textContent =
+    chapter.title;
+
+  const total =
+    state.chapters.reduce(
+      (sum,item)=>
+        sum +
+        characterLength(
+          item.text
+        ),
+      0
+    );
+
+  $("totalCharacters").textContent =
+    total.toLocaleString() +
+    "字";
+
+}
+
+
+/* =========================================================
+   RENDER CHAPTERS
+========================================================= */
+
+function renderChapters(){
+
+  const container =
+    $("chapters");
+
+  container.innerHTML =
+    "";
+
+  const fragment =
+    document.createDocumentFragment();
+
+  state.chapters.forEach(
+    (chapter,index)=>{
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type =
+        "button";
+
+      button.className =
+        "chapter" +
+        (
+          index ===
+          state.activeChapter
+            ? " active"
+            : ""
+        );
+
+      const titleRow =
+        document.createElement(
+          "div"
+        );
+
+      titleRow.className =
+        "chapter-title-row";
+
+      const title =
+        document.createElement(
+          "span"
+        );
+
+      title.className =
+        "chapter-title";
+
+      title.textContent =
+        chapter.title;
+
+      titleRow.appendChild(
+        title
+      );
+
+      const small =
+        document.createElement(
+          "small"
+        );
+
+      small.textContent =
+        characterLength(
+          chapter.text
+        ).toLocaleString() +
+        "字";
+
+      button.appendChild(
+        titleRow
+      );
+
+      button.appendChild(
+        small
+      );
+
+      button.addEventListener(
+        "click",
+        ()=>{
+          switchChapter(index);
+        }
+      );
+
+      fragment.appendChild(
+        button
+      );
+
+    }
+  );
+
+  container.appendChild(
+    fragment
+  );
+
+  $("chapterCount").textContent =
+    state.chapters.length;
 
 }
 
@@ -1647,125 +2821,24 @@ function render(){
     return;
   }
 
-
-  const total =
-    state.chapters.reduce(
-      (sum,item)=>
-        sum +
-        characterLength(
-          item.text
-        ),
-      0
-    );
-
-
   $("titleInput").value =
     state.title;
-
 
   $("bookTitle").textContent =
     state.title;
 
+  $("editor").value =
+    chapter.text;
 
-  $("bookMeta").textContent =
-    chapter.title +
-    "　" +
-    characterLength(
-      chapter.text
-    ).toLocaleString() +
-    "字";
-
-
-  $("characterCount").textContent =
-    characterLength(
-      chapter.text
-    ).toLocaleString() +
-    "字";
-
-
-  $("lineCount").textContent =
-    (
-      chapter.text
-        ? chapter.text.split("\n").length
-        : 0
-    ).toLocaleString() +
-    "行";
-
-
-  $("totalCharacters").textContent =
-    total.toLocaleString() +
-    "字";
-
+  updateStats();
 
   renderChapters();
 
-}
+  applySettings();
 
-
-/* =========================================================
-   CHAPTERS
-========================================================= */
-
-function renderChapters(){
-
-  const container =
-    $("chapters");
-
-
-  container.innerHTML =
-    "";
-
-
-  state.chapters.forEach(
-    (chapter,index)=>{
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-
-      button.type =
-        "button";
-
-
-      button.className =
-        "chapter" +
-        (
-          index ===
-          state.activeChapter
-            ? " active"
-            : ""
-        );
-
-
-      button.innerHTML =
-        escapeHtml(
-          chapter.title
-        ) +
-        "<small>" +
-        characterLength(
-          chapter.text
-        ).toLocaleString() +
-        "字</small>";
-
-
-      button.addEventListener(
-        "click",
-        ()=>switchChapter(index)
-      );
-
-
-      container.appendChild(
-        button
-      );
-
-    }
+  setPreviewTextImmediate(
+    chapter.text
   );
-
-
-  $("chapterCount").textContent =
-    state.chapters.length;
 
 }
 
@@ -1778,39 +2851,49 @@ function switchChapter(
   index
 ){
 
+  if(
+    index < 0 ||
+    index >= state.chapters.length
+  ){
+    return;
+  }
+
   clearTimeout(
     animationTimer
   );
 
   animationToken++;
 
-
   syncEditor();
-
 
   state.activeChapter =
     index;
 
-
   const chapter =
     currentChapter();
-
 
   $("editor").value =
     chapter.text;
 
-
   displayedPreviewText =
     chapter.text;
-
 
   $("preview").textContent =
     chapter.text;
 
+  $("previewChapter").textContent =
+    chapter.title;
 
-  render();
+  updateStats();
 
-  applySettings();
+  renderChapters();
+
+  requestAnimationFrame(
+    ()=>{
+      updateReaderCanvasWidth();
+      followLatestText();
+    }
+  );
 
   scheduleSave();
 
@@ -1818,7 +2901,7 @@ function switchChapter(
 
 
 /* =========================================================
-   SAVE
+   AUTO SAVE
 ========================================================= */
 
 function scheduleSave(){
@@ -1827,19 +2910,16 @@ function scheduleSave(){
     saveTimer
   );
 
-
   $("saveState").textContent =
     "保存中…";
-
 
   $("status").textContent =
     "編集中";
 
-
   saveTimer =
     setTimeout(
       saveState,
-      400
+      500
     );
 
 }
@@ -1851,24 +2931,48 @@ function saveState(){
     saveTimer
   );
 
-
   syncEditor();
 
+  try{
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(state)
-  );
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(
+        state
+      )
+    );
 
+    $("saveState").textContent =
+      "保存済み";
 
-  $("saveState").textContent =
-    "保存済み";
+    $("status").textContent =
+      "保存しました";
 
+  }catch(error){
 
-  $("status").textContent =
-    "保存しました";
+    console.error(error);
+
+    $("saveState").textContent =
+      "保存失敗";
+
+    $("status").textContent =
+      "保存できませんでした";
+
+  }
 
 }
+
+
+/* =========================================================
+   MANUAL SAVE
+========================================================= */
+
+$("saveButton").addEventListener(
+  "click",
+  ()=>{
+    saveState();
+  }
+);
 
 
 /* =========================================================
@@ -1881,59 +2985,16 @@ $("editor").addEventListener(
 
     syncEditor();
 
-
     const text =
       currentChapter().text;
-
 
     animatePreview(
       text
     );
 
-
-    $("bookMeta").textContent =
-      currentChapter().title +
-      "　" +
-      characterLength(
-        text
-      ).toLocaleString() +
-      "字";
-
-
-    $("characterCount").textContent =
-      characterLength(
-        text
-      ).toLocaleString() +
-      "字";
-
-
-    $("lineCount").textContent =
-      (
-        text
-          ? text.split("\n").length
-          : 0
-      ).toLocaleString() +
-      "行";
-
-
-    const total =
-      state.chapters.reduce(
-        (sum,item)=>
-          sum +
-          characterLength(
-            item.text
-          ),
-        0
-      );
-
-
-    $("totalCharacters").textContent =
-      total.toLocaleString() +
-      "字";
-
+    updateStats();
 
     renderChapters();
-
 
     scheduleSave();
 
@@ -1953,10 +3014,8 @@ $("titleInput").addEventListener(
       event.target.value ||
       "新しい物語";
 
-
     $("bookTitle").textContent =
       state.title;
-
 
     scheduleSave();
 
@@ -1973,27 +3032,28 @@ function applySettings(){
   const settings =
     state.settings;
 
-
   const preview =
     $("preview");
-
 
   preview.style.fontSize =
     settings.fontSize +
     "px";
 
-
   preview.style.lineHeight =
     settings.lineHeight;
-
 
   preview.style.letterSpacing =
     settings.letterSpacing +
     "em";
 
-
   preview.style.fontFamily =
     settings.fontFamily;
+
+  requestAnimationFrame(
+    ()=>{
+      updateReaderCanvasWidth();
+    }
+  );
 
 }
 
@@ -2003,22 +3063,17 @@ function openSettings(){
   const settings =
     state.settings;
 
-
   $("fontSize").value =
     settings.fontSize;
-
 
   $("lineHeight").value =
     settings.lineHeight;
 
-
   $("letterSpacing").value =
     settings.letterSpacing;
 
-
   $("fontFamily").value =
     settings.fontFamily;
-
 
   $("settingsModal")
     .classList
@@ -2036,11 +3091,9 @@ $("settingsButton").addEventListener(
 $("closeSettings").addEventListener(
   "click",
   ()=>{
-
     $("settingsModal")
       .classList
       .remove("open");
-
   }
 );
 
@@ -2049,11 +3102,25 @@ $("fontSize").addEventListener(
   "input",
   event=>{
 
-    state.settings.fontSize =
+    const value =
       Number(
         event.target.value
       );
 
+    if(
+      !Number.isFinite(value)
+    ){
+      return;
+    }
+
+    state.settings.fontSize =
+      Math.max(
+        12,
+        Math.min(
+          40,
+          value
+        )
+      );
 
     applySettings();
 
@@ -2067,11 +3134,25 @@ $("lineHeight").addEventListener(
   "input",
   event=>{
 
-    state.settings.lineHeight =
+    const value =
       Number(
         event.target.value
       );
 
+    if(
+      !Number.isFinite(value)
+    ){
+      return;
+    }
+
+    state.settings.lineHeight =
+      Math.max(
+        1,
+        Math.min(
+          3,
+          value
+        )
+      );
 
     applySettings();
 
@@ -2085,11 +3166,25 @@ $("letterSpacing").addEventListener(
   "input",
   event=>{
 
-    state.settings.letterSpacing =
+    const value =
       Number(
         event.target.value
       );
 
+    if(
+      !Number.isFinite(value)
+    ){
+      return;
+    }
+
+    state.settings.letterSpacing =
+      Math.max(
+        0,
+        Math.min(
+          .5,
+          value
+        )
+      );
 
     applySettings();
 
@@ -2106,7 +3201,6 @@ $("fontFamily").addEventListener(
     state.settings.fontFamily =
       event.target.value;
 
-
     applySettings();
 
     scheduleSave();
@@ -2116,16 +3210,26 @@ $("fontFamily").addEventListener(
 
 
 /* =========================================================
-   NEW
+   NEW WORK
 ========================================================= */
 
 $("newButton").addEventListener(
   "click",
   ()=>{
 
+    $("newTitle").value =
+      "新しい物語";
+
     $("newModal")
       .classList
       .add("open");
+
+    requestAnimationFrame(
+      ()=>{
+        $("newTitle").focus();
+        $("newTitle").select();
+      }
+    );
 
   }
 );
@@ -2134,11 +3238,9 @@ $("newButton").addEventListener(
 $("cancelNew").addEventListener(
   "click",
   ()=>{
-
     $("newModal")
       .classList
       .remove("open");
-
   }
 );
 
@@ -2153,38 +3255,33 @@ $("createNew").addEventListener(
 
     animationToken++;
 
-
     state =
       createDefaultState();
 
-
     state.title =
-      $("newTitle").value ||
+      $("newTitle").value.trim() ||
       "新しい物語";
-
-
-    $("editor").value =
-      "";
-
-
-    displayedPreviewText =
-      "";
-
-
-    $("preview").textContent =
-      "";
-
 
     $("newModal")
       .classList
       .remove("open");
 
+    $("editor").value =
+      "";
+
+    displayedPreviewText =
+      "";
+
+    $("preview").textContent =
+      "";
 
     render();
 
     applySettings();
 
     saveState();
+
+    enterWriteMode();
 
   }
 );
@@ -2204,13 +3301,10 @@ $("addChapter").addEventListener(
 
     animationToken++;
 
-
     syncEditor();
-
 
     const number =
       state.chapters.length + 1;
-
 
     state.chapters.push({
 
@@ -2223,22 +3317,158 @@ $("addChapter").addEventListener(
 
     });
 
-
     state.activeChapter =
       state.chapters.length - 1;
-
 
     $("editor").value =
       "";
 
-
     displayedPreviewText =
       "";
-
 
     $("preview").textContent =
       "";
 
+    render();
+
+    scheduleSave();
+
+    $("editor").focus();
+
+  }
+);
+
+
+/* =========================================================
+   RENAME CHAPTER
+========================================================= */
+
+$("renameChapter").addEventListener(
+  "click",
+  ()=>{
+
+    const chapter =
+      currentChapter();
+
+    if(!chapter){
+      return;
+    }
+
+    $("chapterTitleInput").value =
+      chapter.title;
+
+    $("chapterModal")
+      .classList
+      .add("open");
+
+    requestAnimationFrame(
+      ()=>{
+        $("chapterTitleInput").focus();
+        $("chapterTitleInput").select();
+      }
+    );
+
+  }
+);
+
+
+$("cancelChapter").addEventListener(
+  "click",
+  ()=>{
+    $("chapterModal")
+      .classList
+      .remove("open");
+  }
+);
+
+
+$("saveChapterTitle").addEventListener(
+  "click",
+  ()=>{
+
+    const value =
+      $("chapterTitleInput")
+        .value
+        .trim();
+
+    if(!value){
+      return;
+    }
+
+    currentChapter().title =
+      value;
+
+    $("chapterModal")
+      .classList
+      .remove("open");
+
+    updateStats();
+
+    renderChapters();
+
+    scheduleSave();
+
+  }
+);
+
+
+/* =========================================================
+   DELETE CHAPTER
+========================================================= */
+
+$("deleteChapter").addEventListener(
+  "click",
+  ()=>{
+
+    if(
+      state.chapters.length <= 1
+    ){
+
+      alert(
+        "最後の1章は削除できません。"
+      );
+
+      return;
+
+    }
+
+    const chapter =
+      currentChapter();
+
+    const ok =
+      confirm(
+        `「${chapter.title}」を削除しますか？\n本文も削除されます。`
+      );
+
+    if(!ok){
+      return;
+    }
+
+    state.chapters.splice(
+      state.activeChapter,
+      1
+    );
+
+    state.activeChapter =
+      Math.max(
+        0,
+        Math.min(
+          state.activeChapter,
+          state.chapters.length - 1
+        )
+      );
+
+    const next =
+      currentChapter();
+
+    $("editor").value =
+      next.text;
+
+    displayedPreviewText =
+      next.text;
+
+    $("preview").textContent =
+      next.text;
 
     render();
 
@@ -2249,82 +3479,102 @@ $("addChapter").addEventListener(
 
 
 /* =========================================================
-   READING MODE
+   MODE
 ========================================================= */
 
 function enterReadingMode(){
+
+  syncEditor();
+
+  /*
+    読書モードではreader自体を
+    画面いっぱいに固定。
+  */
+
+  document.body.classList.add(
+    "reading-mode"
+  );
 
   $("reader")
     .classList
     .add("reading");
 
-
-  document.body
-    .classList
-    .add("reading-mode");
-
-
   $("readingMode")
     .classList
     .add("active");
-
 
   $("writeMode")
     .classList
     .remove("active");
 
+  $("mobilePreview")
+    .classList
+    .remove("active");
 
-  $("status").textContent =
-    "読書モード";
-
+  requestAnimationFrame(
+    ()=>{
+      updateReaderCanvasWidth();
+      followLatestText();
+    }
+  );
 
 }
 
 
-function exitReadingMode(){
+function enterWriteMode(){
+
+  document.body.classList.remove(
+    "reading-mode"
+  );
 
   $("reader")
     .classList
     .remove("reading");
 
-
-  document.body
+  $("reader")
     .classList
-    .remove("reading-mode");
-
-
-  $("readingMode")
-    .classList
-    .remove("active");
-
+    .remove("mobile-preview");
 
   $("writeMode")
     .classList
     .add("active");
 
+  $("readingMode")
+    .classList
+    .remove("active");
 
-  $("status").textContent =
-    "執筆モード";
-
+  $("mobilePreview")
+    .classList
+    .remove("active");
 
 }
 
 
 $("readingMode").addEventListener(
   "click",
-  enterReadingMode
+  ()=>{
+    enterReadingMode();
+  }
 );
 
 
 $("writeMode").addEventListener(
   "click",
-  exitReadingMode
+  ()=>{
+    enterWriteMode();
+  }
 );
 
 
-$("readingExit").addEventListener(
+$("readingBack").addEventListener(
   "click",
-  exitReadingMode
+  event=>{
+
+    event.stopPropagation();
+
+    enterWriteMode();
+
+  }
 );
 
 
@@ -2336,23 +3586,33 @@ $("mobilePreview").addEventListener(
   "click",
   ()=>{
 
-    $("reader")
-      .classList
-      .toggle(
+    const reader =
+      $("reader");
+
+    const active =
+      reader.classList.toggle(
         "mobile-preview"
       );
 
+    $("mobilePreview")
+      .classList
+      .toggle(
+        "active",
+        active
+      );
+
+    if(active){
+
+      requestAnimationFrame(
+        ()=>{
+          updateReaderCanvasWidth();
+          followLatestText();
+        }
+      );
+
+    }
+
   }
-);
-
-
-/* =========================================================
-   SAVE BUTTON
-========================================================= */
-
-$("saveButton").addEventListener(
-  "click",
-  saveState
 );
 
 
@@ -2374,37 +3634,29 @@ function downloadFile(
       }
     );
 
-
   const url =
     URL.createObjectURL(
       blob
     );
-
 
   const link =
     document.createElement(
       "a"
     );
 
-
   link.href =
     url;
 
-
   link.download =
     filename;
-
 
   document.body.appendChild(
     link
   );
 
-
   link.click();
 
-
   link.remove();
-
 
   setTimeout(
     ()=>{
@@ -2418,17 +3670,20 @@ function downloadFile(
 }
 
 
+/* =========================================================
+   EXPORT TXT
+========================================================= */
+
 $("exportTxt").addEventListener(
   "click",
   ()=>{
 
     syncEditor();
 
-
     const text =
       state.chapters
         .map(
-          chapter =>
+          chapter=>
             chapter.title +
             "\n\n" +
             chapter.text
@@ -2437,13 +3692,10 @@ $("exportTxt").addEventListener(
           "\n\n"
         );
 
-
     downloadFile(
       state.title +
       ".txt",
-
       text,
-
       "text/plain;charset=utf-8"
     );
 
@@ -2451,129 +3703,147 @@ $("exportTxt").addEventListener(
 );
 
 
+/* =========================================================
+   EXPORT HTML
+========================================================= */
+
 $("exportHtml").addEventListener(
   "click",
   ()=>{
 
     syncEditor();
 
-
-    const body =
+    const chaptersHtml =
       state.chapters
         .map(
-          chapter =>
+          chapter=>{
 
-            "<h2>" +
-            escapeHtml(
-              chapter.title
-            ) +
-            "</h2>" +
+            return `
+<section class="chapter">
+  <h2>${escapeHtml(chapter.title)}</h2>
+  <div class="novel">${escapeHtml(
+    chapter.text
+  ).replace(
+    /\n/g,
+    "<br>"
+  )}</div>
+</section>`;
 
-            "<div class='novel'>" +
-            escapeHtml(
-              chapter.text
-            ).replace(
-              /\n/g,
-              "<br>"
-            ) +
-            "</div>"
+          }
         )
         .join("");
-
 
     const html =
 `<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-
-<title>
-${escapeHtml(state.title)}
-</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${escapeHtml(state.title)}</title>
 
 <style>
 
 html,
 body{
   margin:0;
-  min-height:100%;
+  width:100%;
+  height:100%;
 }
 
 body{
-  background:#ddd;
-}
-
-.page{
-  min-height:100vh;
-
-  padding:60px;
-
-  background:#f7f3ea;
-
+  background:#d9d5cc;
   color:#252525;
-}
-
-h1{
   font-family:
     "Yu Mincho",
     "Hiragino Mincho ProN",
     "Noto Serif JP",
     serif;
+}
+
+.reader{
+  width:100%;
+  height:100vh;
+  overflow-x:auto;
+  overflow-y:hidden;
+  background:#d9d5cc;
+  padding:40px;
+  box-sizing:border-box;
+}
+
+.book{
+  width:max-content;
+  min-width:100%;
+  height:calc(100vh - 80px);
+  box-sizing:border-box;
+
+  background:#f7f3ea;
+
+  padding:70px;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.2);
+}
+
+.book-title{
+  writing-mode:vertical-rl;
+  font-size:32px;
+  font-weight:700;
+  margin-right:60px;
+}
+
+.chapter{
+  margin-bottom:80px;
+}
+
+.chapter h2{
+  writing-mode:vertical-rl;
+  margin:0 0 30px;
 }
 
 .novel{
   writing-mode:vertical-rl;
   text-orientation:mixed;
 
+  height:calc(100vh - 220px);
+
+  width:max-content;
+  min-width:max-content;
+
   white-space:pre-wrap;
 
-  height:
-    calc(
-      100vh - 120px
-    );
+  font-size:${state.settings.fontSize}px;
 
-  font-family:
-    "Yu Mincho",
-    "Hiragino Mincho ProN",
-    "Noto Serif JP",
-    serif;
+  line-height:${state.settings.lineHeight};
 
-  font-size:
-    ${state.settings.fontSize}px;
-
-  line-height:
-    ${state.settings.lineHeight};
-
-  letter-spacing:
-    ${state.settings.letterSpacing}em;
+  letter-spacing:${state.settings.letterSpacing}em;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<main class="page">
+<div class="reader">
 
-<h1>
+<div class="book">
+
+<div class="book-title">
 ${escapeHtml(state.title)}
-</h1>
+</div>
 
-${body}
+${chaptersHtml}
 
-</main>
+</div>
+
+</div>
 
 </body>
 </html>`;
 
-
     downloadFile(
       state.title +
       ".html",
-
       html,
-
       "text/html;charset=utf-8"
     );
 
@@ -2582,7 +3852,7 @@ ${body}
 
 
 /* =========================================================
-   KEYBOARD
+   MODAL / ESCAPE
 ========================================================= */
 
 document.addEventListener(
@@ -2599,8 +3869,9 @@ document.addEventListener(
 
       saveState();
 
-    }
+      return;
 
+    }
 
     if(
       event.key === "Escape"
@@ -2611,24 +3882,24 @@ document.addEventListener(
           ".modal-bg.open"
         )
         .forEach(
-          modal =>
+          modal=>{
             modal.classList.remove(
               "open"
-            )
+            );
+          }
         );
 
-
       /*
-        Escで読書モードも終了。
+        読書モード中にEscでも執筆へ戻る。
       */
 
       if(
-        $("reader")
-          .classList
-          .contains("reading")
+        document.body.classList.contains(
+          "reading-mode"
+        )
       ){
 
-        exitReadingMode();
+        enterWriteMode();
 
       }
 
@@ -2639,24 +3910,62 @@ document.addEventListener(
 
 
 /* =========================================================
+   WINDOW RESIZE
+========================================================= */
+
+let resizeTimer = null;
+
+window.addEventListener(
+  "resize",
+  ()=>{
+
+    clearTimeout(
+      resizeTimer
+    );
+
+    resizeTimer =
+      setTimeout(
+        ()=>{
+          updateReaderCanvasWidth();
+          updateReaderPosition();
+        },
+        80
+      );
+
+  }
+);
+
+
+/* =========================================================
    INITIALIZE
 ========================================================= */
 
-$("editor").value =
-  currentChapter().text;
+(function initialize(){
 
+  $("editor").value =
+    currentChapter().text;
 
-displayedPreviewText =
-  currentChapter().text;
+  $("titleInput").value =
+    state.title;
 
+  displayedPreviewText =
+    currentChapter().text;
 
-$("preview").textContent =
-  displayedPreviewText;
+  $("preview").textContent =
+    displayedPreviewText;
 
+  render();
 
-render();
+  applySettings();
 
-applySettings();
+  requestAnimationFrame(
+    ()=>{
+      updateReaderCanvasWidth();
+      followLatestText();
+    }
+  );
+
+})();
 
 </script>
 
