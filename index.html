@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-
 <title>縦読み小説エディタ PRO</title>
 
 <style>
@@ -11,17 +10,18 @@
   --bg:#0b0d10;
   --panel:#11151a;
   --panel2:#171c22;
-  --panel3:#1d242c;
   --line:#2b333d;
   --text:#edf1f5;
   --muted:#8d98a5;
   --accent:#9abfff;
 
   --paper:#f7f3ea;
-  --paper2:#eee8dc;
+  --paper2:#f1ece2;
   --ink:#252525;
 
-  --reader-bg:#d9d5cc;
+  --page-width:1100px;
+  --page-padding-x:70px;
+  --page-padding-y:55px;
 }
 
 *{
@@ -39,7 +39,6 @@ body{
   overflow:hidden;
   background:var(--bg);
   color:var(--text);
-
   font-family:
     system-ui,
     "Noto Sans JP",
@@ -57,15 +56,6 @@ button{
   cursor:pointer;
 }
 
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible{
-  outline:2px solid var(--accent);
-  outline-offset:2px;
-}
-
-
 /* =========================================================
    APP
 ========================================================= */
@@ -78,7 +68,6 @@ select:focus-visible{
   grid-template-rows:58px minmax(0,1fr) 30px;
 }
 
-
 /* =========================================================
    HEADER
 ========================================================= */
@@ -86,14 +75,14 @@ select:focus-visible{
 .topbar{
   display:flex;
   align-items:center;
-
   gap:14px;
+
   padding:0 16px;
 
   background:rgba(17,21,26,.98);
   border-bottom:1px solid var(--line);
 
-  z-index:100;
+  z-index:200;
 }
 
 .brand{
@@ -137,6 +126,11 @@ select:focus-visible{
 
   background:var(--panel2);
   color:var(--text);
+
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    transform .12s ease;
 }
 
 .btn:hover,
@@ -144,13 +138,18 @@ select:focus-visible{
   background:#1d242c;
 }
 
+.btn:active,
+.tool:active{
+  transform:translateY(1px);
+}
+
 .btn-primary{
   background:#dce9ff;
   border-color:#dce9ff;
+
   color:#182237;
   font-weight:700;
 }
-
 
 /* =========================================================
    WORKSPACE
@@ -162,9 +161,8 @@ select:focus-visible{
   display:grid;
   grid-template-columns:
     minmax(0,1.15fr)
-    minmax(360px,.85fr);
+    minmax(380px,.85fr);
 }
-
 
 /* =========================================================
    READER
@@ -177,7 +175,7 @@ select:focus-visible{
   display:grid;
   grid-template-rows:46px minmax(0,1fr);
 
-  background:var(--reader-bg);
+  background:#d9d5cc;
 
   border-right:1px solid var(--line);
 
@@ -192,16 +190,9 @@ select:focus-visible{
   padding:0 14px;
 
   background:rgba(247,243,234,.96);
-
   color:#444;
 
   border-bottom:1px solid #c9c2b7;
-}
-
-.reader-header-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
 }
 
 .reader-header strong{
@@ -213,61 +204,69 @@ select:focus-visible{
   font-size:11px;
 }
 
-.reader-close{
-  display:none;
-
-  border:1px solid #c7c0b5;
-  border-radius:7px;
-
-  padding:5px 9px;
-
-  background:#eee8dc;
-  color:#444;
-
-  font-size:11px;
-}
+/* =========================================================
+   READER VIEWPORT
+========================================================= */
 
 .reader-viewport{
   min-width:0;
   min-height:0;
 
-  position:relative;
-
-  overflow:hidden;
+  overflow:auto;
 
   padding:28px;
 
   display:flex;
-  align-items:stretch;
-  justify-content:center;
+  align-items:flex-start;
+
+  direction:ltr;
+
+  scroll-behavior:smooth;
 }
 
-
-/* =========================================================
-   BOOK
-========================================================= */
+/*
+  読書エリアではページを縦方向に十分大きくする。
+  横方向は本文の列数に応じて自動拡張。
+*/
 
 .book{
   position:relative;
 
-  width:100%;
-  min-width:0;
-  height:100%;
+  min-height:calc(100% - 1px);
 
-  background:var(--paper);
+  width:max-content;
+  min-width:100%;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0,0,0,.025),
+      transparent 8%,
+      transparent 92%,
+      rgba(0,0,0,.025)
+    ),
+    var(--paper);
+
   color:var(--ink);
 
-  padding:48px 58px;
+  padding:
+    var(--page-padding-y)
+    var(--page-padding-x);
 
   box-shadow:
     0 18px 55px rgba(0,0,0,.22);
 
-  display:grid;
+  display:flex;
+  flex-direction:column;
 
-  grid-template-rows:auto auto minmax(0,1fr);
+  align-items:flex-end;
 
-  overflow:hidden;
+  overflow:visible;
 }
+
+/* =========================================================
+   TITLE
+========================================================= */
 
 .book-title{
   writing-mode:vertical-rl;
@@ -284,45 +283,43 @@ select:focus-visible{
 
   line-height:1.8;
 
-  margin-bottom:18px;
+  align-self:flex-start;
+
+  margin-bottom:20px;
 
   white-space:nowrap;
 }
 
 .book-meta{
+  align-self:flex-start;
+
   color:#777;
 
   font-size:12px;
 
-  margin-bottom:14px;
+  margin-bottom:20px;
 
   white-space:nowrap;
 }
 
-
 /* =========================================================
-   PAGINATED PREVIEW
+   VERTICAL NOVEL
 ========================================================= */
 
-.preview-stage{
-  position:relative;
+/*
+  ここが今回の重要部分。
 
-  min-width:0;
-  min-height:0;
+  以前は min-height:65% だったため、
+  ページのかなりの部分を使わずに
+  早々に次の列へ移っていた。
 
-  overflow:hidden;
-}
+  今回は本文領域をページの残りいっぱいまで使用。
+*/
 
-.preview-page{
-  width:100%;
-  height:100%;
-
-  display:none;
-
-  overflow:hidden;
-
+.vertical-text{
   writing-mode:vertical-rl;
   text-orientation:mixed;
+
   direction:ltr;
 
   white-space:pre-wrap;
@@ -334,107 +331,96 @@ select:focus-visible{
     serif;
 
   font-size:18px;
+
   line-height:1.9;
+
   letter-spacing:.08em;
 
-  transform:translateX(0);
+  /*
+    高さを固定することで、
+    長文が無限に下へ伸びず、
+    縦列が左方向へ自動的に送られる。
+  */
+  height:
+    calc(
+      100dvh
+      - 58px
+      - 30px
+      - 46px
+      - (var(--page-padding-y) * 2)
+      - 72px
+    );
 
+  min-height:520px;
+
+  /*
+    横幅は文字量に応じて必要な分だけ確保。
+  */
+  width:max-content;
+
+  min-width:0;
+
+  overflow:visible;
+
+  /*
+    日本語縦書きの列間。
+  */
+  column-gap:0;
+}
+
+/* =========================================================
+   CHARACTER ANIMATION
+========================================================= */
+
+.novel-char{
+  display:inline;
   opacity:1;
 }
 
-.preview-page.active{
-  display:block;
+.novel-char.typing{
+  animation:
+    novelCharacterIn
+    .18s
+    cubic-bezier(.2,.75,.25,1)
+    both;
 }
 
-.preview-page.page-enter-next{
-  animation:pageNext .24s ease-out both;
-}
-
-.preview-page.page-enter-prev{
-  animation:pagePrev .24s ease-out both;
-}
-
-@keyframes pageNext{
-  from{
+@keyframes novelCharacterIn{
+  0%{
     opacity:0;
-    transform:translateX(-16px);
+    filter:blur(3px);
   }
 
-  to{
+  45%{
+    opacity:.55;
+    filter:blur(1px);
+  }
+
+  100%{
     opacity:1;
-    transform:translateX(0);
+    filter:blur(0);
   }
 }
 
-@keyframes pagePrev{
-  from{
-    opacity:0;
-    transform:translateX(16px);
+.novel-char.latest{
+  animation:
+    novelLatest
+    .28s
+    ease-out
+    both;
+}
+
+@keyframes novelLatest{
+  0%{
+    opacity:.15;
+    text-shadow:0 0 8px rgba(60,50,35,.25);
   }
 
-  to{
+  100%{
     opacity:1;
-    transform:translateX(0);
+    text-shadow:none;
   }
 }
-
-
-/* =========================================================
-   PAGE CONTROLS
-========================================================= */
-
-.reader-controls{
-  position:absolute;
-
-  left:50%;
-  bottom:14px;
-
-  transform:translateX(-50%);
-
-  display:flex;
-  align-items:center;
-  gap:8px;
-
-  padding:6px;
-
-  border:1px solid rgba(80,70,60,.18);
-  border-radius:10px;
-
-  background:rgba(247,243,234,.94);
-
-  box-shadow:
-    0 8px 24px rgba(0,0,0,.12);
-
-  z-index:10;
-}
-
-.page-button{
-  width:32px;
-  height:30px;
-
-  border:1px solid #c9c2b7;
-  border-radius:7px;
-
-  background:#eee8dc;
-  color:#444;
-
-  font-weight:700;
-}
-
-.page-button:hover{
-  background:#e3dccf;
-}
-
-.page-indicator{
-  min-width:85px;
-
-  text-align:center;
-
-  color:#666;
-
-  font-size:11px;
-}
-
 
 /* =========================================================
    WRITER
@@ -455,6 +441,7 @@ select:focus-visible{
   align-items:center;
 
   gap:6px;
+
   padding:0 10px;
 
   border-bottom:1px solid var(--line);
@@ -475,9 +462,9 @@ select:focus-visible{
 .tool:hover{
   background:#1b222a;
   border-color:var(--line);
+
   color:var(--text);
 }
-
 
 /* =========================================================
    EDITOR
@@ -521,9 +508,14 @@ select:focus-visible{
   border-radius:8px;
 
   background:transparent;
+
   color:#b7c0ca;
 
   text-align:left;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease;
 }
 
 .chapter:hover{
@@ -564,13 +556,19 @@ select:focus-visible{
   border:0;
   outline:0;
 
-  padding:30px 32px 80px;
+  padding:
+    30px
+    32px
+    80px;
 
   background:#101419;
+
   color:#edf1f5;
 
   font-size:17px;
+
   line-height:1.95;
+
   letter-spacing:.02em;
 
   overflow:auto;
@@ -600,7 +598,6 @@ select:focus-visible{
   pointer-events:none;
 }
 
-
 /* =========================================================
    FOOTER
 ========================================================= */
@@ -621,87 +618,6 @@ select:focus-visible{
 .status{
   margin-left:auto;
 }
-
-
-/* =========================================================
-   READING MODE
-========================================================= */
-
-.reader.reading{
-  position:fixed;
-
-  inset:58px 0 30px;
-
-  z-index:200;
-
-  border:0;
-
-  grid-template-rows:minmax(0,1fr);
-
-  background:var(--reader-bg);
-}
-
-.reader.reading .reader-header{
-  display:flex;
-
-  position:absolute;
-
-  top:0;
-  left:0;
-  right:0;
-
-  height:46px;
-
-  z-index:20;
-
-  box-shadow:
-    0 4px 18px rgba(0,0,0,.08);
-}
-
-.reader.reading .reader-close{
-  display:block;
-}
-
-.reader.reading .reader-viewport{
-  padding:58px 50px 42px;
-}
-
-.reader.reading .book{
-  width:min(1100px,100%);
-  height:100%;
-
-  padding:55px 70px;
-
-  border-radius:2px;
-
-  box-shadow:
-    0 20px 70px rgba(0,0,0,.20);
-}
-
-
-/* =========================================================
-   READING MODE BACKDROP
-========================================================= */
-
-.reader.reading::after{
-  content:"";
-
-  position:absolute;
-
-  inset:0;
-
-  pointer-events:none;
-
-  background:
-    radial-gradient(
-      ellipse at center,
-      rgba(255,255,255,.08),
-      transparent 65%
-    );
-
-  z-index:-1;
-}
-
 
 /* =========================================================
    MODAL
@@ -731,6 +647,7 @@ select:focus-visible{
   padding:20px;
 
   border:1px solid var(--line);
+
   border-radius:13px;
 
   background:#161b21;
@@ -766,11 +683,13 @@ select:focus-visible{
   padding:9px;
 
   border:1px solid var(--line);
+
   border-radius:7px;
 
   outline:0;
 
   background:#0e1216;
+
   color:var(--text);
 }
 
@@ -792,6 +711,79 @@ select:focus-visible{
   margin-top:16px;
 }
 
+/* =========================================================
+   READING MODE
+========================================================= */
+
+/*
+  読書モードは「readerを上に被せる」だけ。
+  以前の実装では戻る導線が弱かったので、
+  専用の終了ボタンも追加する。
+*/
+
+.reader.reading{
+  position:fixed;
+
+  inset:58px 0 30px;
+
+  z-index:150;
+
+  border:0;
+
+  display:grid;
+
+  grid-template-rows:minmax(0,1fr);
+
+  background:#d9d5cc;
+}
+
+.reader.reading .reader-header{
+  display:none;
+}
+
+.reader.reading .reader-viewport{
+  padding:35px 50px;
+}
+
+.reader.reading .book{
+  min-height:100%;
+
+  box-shadow:
+    0 8px 35px rgba(0,0,0,.15);
+}
+
+/* =========================================================
+   READING EXIT
+========================================================= */
+
+.reading-exit{
+  position:fixed;
+
+  top:72px;
+  right:22px;
+
+  z-index:300;
+
+  display:none;
+
+  padding:8px 12px;
+
+  border:1px solid rgba(0,0,0,.15);
+
+  border-radius:8px;
+
+  background:rgba(30,30,30,.82);
+
+  color:#fff;
+
+  backdrop-filter:blur(8px);
+
+  font-size:12px;
+}
+
+body.reading-mode .reading-exit{
+  display:block;
+}
 
 /* =========================================================
    MOBILE
@@ -814,7 +806,7 @@ select:focus-visible{
 
     inset:58px 0 30px;
 
-    z-index:200;
+    z-index:150;
 
     border:0;
   }
@@ -823,15 +815,38 @@ select:focus-visible{
     grid-template-columns:145px minmax(0,1fr);
   }
 
-  .reader.mobile-preview .reader-close{
-    display:block;
+  .reader.mobile-preview .reader-viewport{
+    padding:15px;
+  }
+
+  .reader.mobile-preview .book{
+    padding:30px 25px;
+  }
+
+  .reader.mobile-preview .vertical-text{
+    height:
+      calc(
+        100dvh
+        - 58px
+        - 30px
+        - 30px
+        - 60px
+      );
+
+    min-height:420px;
   }
 }
 
 @media(max-width:620px){
 
+  :root{
+    --page-padding-x:28px;
+    --page-padding-y:30px;
+  }
+
   .topbar{
     padding:0 10px;
+
     gap:8px;
   }
 
@@ -841,6 +856,7 @@ select:focus-visible{
 
   .title-input{
     width:30vw;
+
     font-size:13px;
   }
 
@@ -857,50 +873,52 @@ select:focus-visible{
   }
 
   #editor{
-    padding:20px 17px 70px;
+    padding:
+      20px
+      17px
+      70px;
+
     font-size:16px;
   }
 
   .reader-viewport{
-    padding:10px;
+    padding:15px;
   }
 
   .book{
-    padding:25px 22px 55px;
+    padding:
+      28px
+      24px;
   }
 
   .book-title{
     font-size:25px;
   }
 
+  .vertical-text{
+    height:
+      calc(
+        100dvh
+        - 58px
+        - 30px
+        - 46px
+        - 60px
+      );
+
+    min-height:400px;
+
+    font-size:17px;
+  }
+
   .reader.reading .reader-viewport{
-    padding:50px 12px 36px;
+    padding:20px 15px;
   }
 
-  .reader.reading .book{
-    padding:35px 28px 55px;
+  .reading-exit{
+    top:66px;
+    right:12px;
   }
-
-  .reader-controls{
-    bottom:7px;
-  }
-
-  .page-indicator{
-    min-width:70px;
-  }
-
 }
-
-
-/* =========================================================
-   TOUCH
-========================================================= */
-
-.preview-stage{
-  touch-action:pan-y;
-  user-select:none;
-}
-
 
 /* =========================================================
    REDUCED MOTION
@@ -911,15 +929,12 @@ select:focus-visible{
   *,
   *::before,
   *::after{
+    scroll-behavior:auto !important;
     animation-duration:.01ms !important;
-    animation-iteration-count:1 !important;
-    transition-duration:.01ms !important;
   }
-
 }
 </style>
 </head>
-
 
 <body>
 
@@ -968,7 +983,6 @@ select:focus-visible{
 
 <main class="workspace">
 
-
 <section
   id="reader"
   class="reader"
@@ -976,36 +990,18 @@ select:focus-visible{
 
   <div class="reader-header">
 
-    <div class="reader-header-left">
+    <strong>
+      完成プレビュー
+    </strong>
 
-      <strong>
-        完成プレビュー
-      </strong>
-
-      <span id="totalCharacters">
-        0字
-      </span>
-
-      <span id="readerChapter">
-        第一章
-      </span>
-
-    </div>
-
-    <button
-      id="readerClose"
-      class="reader-close"
-    >
-      執筆画面へ戻る
-    </button>
+    <span id="totalCharacters">
+      0字
+    </span>
 
   </div>
 
 
-  <div
-    id="readerViewport"
-    class="reader-viewport"
-  >
+  <div class="reader-viewport">
 
     <article class="book">
 
@@ -1020,43 +1016,9 @@ select:focus-visible{
       ></div>
 
       <div
-        id="previewStage"
-        class="preview-stage"
-      >
-
-        <div
-          id="preview"
-          class="preview-page active"
-        ></div>
-
-      </div>
-
-      <div class="reader-controls">
-
-        <button
-          id="prevPage"
-          class="page-button"
-          title="前のページ"
-        >
-          ←
-        </button>
-
-        <div
-          id="pageIndicator"
-          class="page-indicator"
-        >
-          1 / 1
-        </div>
-
-        <button
-          id="nextPage"
-          class="page-button"
-          title="次のページ"
-        >
-          →
-        </button>
-
-      </div>
+        id="preview"
+        class="vertical-text"
+      ></div>
 
     </article>
 
@@ -1133,9 +1095,8 @@ select:focus-visible{
       <textarea
         id="editor"
         spellcheck="false"
-        placeholder="ここに小説を書いてください。入力した文章は左側の完成プレビューへ反映されます。"
+        placeholder="ここに小説を書いてください。入力した文章は左側にリアルタイムで綴られていきます。"
       ></textarea>
-
 
       <div class="editor-info">
 
@@ -1169,7 +1130,7 @@ select:focus-visible{
 <footer class="footer">
 
   <span>
-    縦書き・右端から左方向へページ進行
+    右端から左方向へ流れる縦書き
   </span>
 
   <span
@@ -1184,9 +1145,17 @@ select:focus-visible{
 </div>
 
 
-<!-- =======================================================
-     SETTINGS
-======================================================= -->
+<!-- READING EXIT -->
+
+<button
+  id="readingExit"
+  class="reading-exit"
+>
+  ← 執筆画面へ戻る
+</button>
+
+
+<!-- SETTINGS -->
 
 <div
   id="settingsModal"
@@ -1264,15 +1233,11 @@ select:focus-visible{
 
         <select id="fontFamily">
 
-          <option
-            value='"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'
-          >
+          <option value='"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'>
             明朝
           </option>
 
-          <option
-            value='"Noto Sans JP",system-ui,sans-serif'
-          >
+          <option value='"Noto Sans JP",system-ui,sans-serif'>
             ゴシック
           </option>
 
@@ -1299,9 +1264,7 @@ select:focus-visible{
 </div>
 
 
-<!-- =======================================================
-     NEW WORK
-======================================================= -->
+<!-- NEW WORK -->
 
 <div
   id="newModal"
@@ -1358,7 +1321,7 @@ select:focus-visible{
 ========================================================= */
 
 const STORAGE_KEY =
-  "vertical-novel-pro-v2";
+  "vertical-novel-pro-animation-v2";
 
 
 const $ = id =>
@@ -1381,7 +1344,6 @@ function createDefaultState(){
     ],
 
     settings:{
-
       fontSize:18,
 
       lineHeight:1.9,
@@ -1390,65 +1352,9 @@ function createDefaultState(){
 
       fontFamily:
         '"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif'
-
     }
 
   };
-
-}
-
-
-function normalizeState(parsed){
-
-  const fallback =
-    createDefaultState();
-
-  if(
-    !parsed ||
-    !Array.isArray(parsed.chapters) ||
-    !parsed.chapters.length
-  ){
-    return fallback;
-  }
-
-  parsed.title =
-    typeof parsed.title === "string"
-      ? parsed.title
-      : fallback.title;
-
-  parsed.activeChapter =
-    Math.max(
-      0,
-      Math.min(
-        Number(parsed.activeChapter) || 0,
-        parsed.chapters.length - 1
-      )
-    );
-
-  parsed.chapters =
-    parsed.chapters.map(
-      (chapter,index)=>({
-
-        title:
-          typeof chapter.title === "string"
-            ? chapter.title
-            : `第${index + 1}章`,
-
-        text:
-          typeof chapter.text === "string"
-            ? chapter.text
-            : ""
-
-      })
-    );
-
-  parsed.settings =
-    {
-      ...fallback.settings,
-      ...(parsed.settings || {})
-    };
-
-  return parsed;
 
 }
 
@@ -1468,9 +1374,30 @@ function loadState(){
 
     }
 
-    return normalizeState(
-      JSON.parse(raw)
-    );
+    const parsed =
+      JSON.parse(raw);
+
+    if(
+      !parsed ||
+      !Array.isArray(parsed.chapters) ||
+      parsed.chapters.length === 0
+    ){
+
+      return createDefaultState();
+
+    }
+
+    /*
+      古いデータにsettingsがない場合でも
+      初期値を補完する。
+    */
+
+    parsed.settings = {
+      ...createDefaultState().settings,
+      ...(parsed.settings || {})
+    };
+
+    return parsed;
 
   }catch{
 
@@ -1489,22 +1416,35 @@ let saveTimer = null;
 
 
 /* =========================================================
-   READING STATE
+   ANIMATION
 ========================================================= */
-
-let pages = [];
-
-let currentPage = 0;
-
-let pageBuildTimer = null;
-
-let displayedPreviewText = "";
 
 let animationTimer = null;
 
+let displayedPreviewText = "";
+
 let animationToken = 0;
 
-let touchStartX = 0;
+
+function getAnimationSpeed(
+  addedLength
+){
+
+  if(addedLength <= 5){
+    return 28;
+  }
+
+  if(addedLength <= 20){
+    return 18;
+  }
+
+  if(addedLength <= 80){
+    return 7;
+  }
+
+  return 1;
+
+}
 
 
 /* =========================================================
@@ -1567,385 +1507,8 @@ function syncEditor(){
 
 
 /* =========================================================
-   PAGE CREATION
+   PREVIEW ANIMATION
 ========================================================= */
-
-/*
-  長文を1つの巨大な縦書き領域にしない。
-  画面の高さに応じてページ単位へ分割する。
-*/
-
-function calculateCharactersPerPage(){
-
-  const stage =
-    $("previewStage");
-
-  if(!stage){
-
-    return 450;
-
-  }
-
-  const height =
-    stage.clientHeight;
-
-  const fontSize =
-    Number(state.settings.fontSize) || 18;
-
-  const lineHeight =
-    Number(state.settings.lineHeight) || 1.9;
-
-  const letterHeight =
-    fontSize * lineHeight;
-
-  const usableHeight =
-    Math.max(
-      240,
-      height - 20
-    );
-
-  const rows =
-    Math.max(
-      8,
-      Math.floor(
-        usableHeight /
-        letterHeight
-      )
-    );
-
-  /*
-    1ページあたりの縦列数を
-    画面幅から概算。
-  */
-
-  const width =
-    Math.max(
-      300,
-      stage.clientWidth
-    );
-
-  const columnWidth =
-    fontSize * 2.1;
-
-  const columns =
-    Math.max(
-      3,
-      Math.floor(
-        width /
-        columnWidth
-      )
-    );
-
-  return Math.max(
-    80,
-    rows * columns
-  );
-
-}
-
-
-function splitTextIntoPages(text){
-
-  if(!text){
-
-    return [""];
-
-  }
-
-  const chars =
-    [...text];
-
-  const perPage =
-    calculateCharactersPerPage();
-
-  const result = [];
-
-  let buffer = "";
-
-  /*
-    単純に文字数だけで切らず、
-    可能な限り句点・改行を境界にする。
-  */
-
-  let index = 0;
-
-  while(index < chars.length){
-
-    let end =
-      Math.min(
-        index + perPage,
-        chars.length
-      );
-
-    if(end < chars.length){
-
-      const searchStart =
-        Math.max(
-          index + Math.floor(perPage * .65),
-          index
-        );
-
-      const candidates =
-        chars
-          .slice(
-            searchStart,
-            end
-          );
-
-      let best = -1;
-
-      for(
-        let i=0;
-        i<candidates.length;
-        i++
-      ){
-
-        if(
-          candidates[i] === "。" ||
-          candidates[i] === "！" ||
-          candidates[i] === "？" ||
-          candidates[i] === "\n"
-        ){
-
-          best = i;
-
-        }
-
-      }
-
-      if(best >= 0){
-
-        end =
-          searchStart +
-          best +
-          1;
-
-      }
-
-    }
-
-    buffer =
-      chars
-        .slice(
-          index,
-          end
-        )
-        .join("");
-
-    result.push(buffer);
-
-    index = end;
-
-  }
-
-  return result.length
-    ? result
-    : [""];
-
-}
-
-
-/* =========================================================
-   BUILD PAGES
-========================================================= */
-
-function buildPages(){
-
-  clearTimeout(
-    pageBuildTimer
-  );
-
-  pageBuildTimer =
-    setTimeout(
-      ()=>{
-        actuallyBuildPages();
-      },
-      30
-    );
-
-}
-
-
-function actuallyBuildPages(){
-
-  syncEditor();
-
-  const chapter =
-    currentChapter();
-
-  if(!chapter){
-
-    pages = [""];
-
-    currentPage = 0;
-
-    return;
-
-  }
-
-  const oldPage =
-    currentPage;
-
-  pages =
-    splitTextIntoPages(
-      chapter.text
-    );
-
-  currentPage =
-    Math.min(
-      oldPage,
-      Math.max(
-        0,
-        pages.length - 1
-      )
-    );
-
-  renderCurrentPage(
-    false
-  );
-
-  updatePageIndicator();
-
-}
-
-
-/* =========================================================
-   RENDER CURRENT PAGE
-========================================================= */
-
-function renderCurrentPage(
-  animate=true,
-  direction="next"
-){
-
-  const stage =
-    $("previewStage");
-
-  const preview =
-    $("preview");
-
-  if(!stage || !preview){
-    return;
-  }
-
-  const text =
-    pages[currentPage] ?? "";
-
-  preview.className =
-    "preview-page active";
-
-  if(animate){
-
-    preview.classList.add(
-      direction === "prev"
-        ? "page-enter-prev"
-        : "page-enter-next"
-    );
-
-  }
-
-  preview.textContent =
-    text;
-
-  applySettings();
-
-}
-
-
-function updatePageIndicator(){
-
-  $("pageIndicator").textContent =
-    `${currentPage + 1} / ${Math.max(1,pages.length)}`;
-
-  $("prevPage").disabled =
-    currentPage <= 0;
-
-  $("nextPage").disabled =
-    currentPage >= pages.length - 1;
-
-}
-
-
-/* =========================================================
-   PAGE NAVIGATION
-========================================================= */
-
-function nextPage(){
-
-  if(currentPage >= pages.length - 1){
-
-    return;
-
-  }
-
-  currentPage++;
-
-  renderCurrentPage(
-    true,
-    "next"
-  );
-
-  updatePageIndicator();
-
-}
-
-
-function prevPage(){
-
-  if(currentPage <= 0){
-
-    return;
-
-  }
-
-  currentPage--;
-
-  renderCurrentPage(
-    true,
-    "prev"
-  );
-
-  updatePageIndicator();
-
-}
-
-
-$("nextPage").addEventListener(
-  "click",
-  nextPage
-);
-
-
-$("prevPage").addEventListener(
-  "click",
-  prevPage
-);
-
-
-/* =========================================================
-   ANIMATION
-========================================================= */
-
-function getAnimationSpeed(
-  addedLength
-){
-
-  if(addedLength <= 5){
-    return 28;
-  }
-
-  if(addedLength <= 20){
-    return 18;
-  }
-
-  if(addedLength <= 80){
-    return 7;
-  }
-
-  return 1;
-
-}
-
 
 function animatePreview(
   newText
@@ -1958,135 +1521,113 @@ function animatePreview(
   const token =
     ++animationToken;
 
-  /*
-    大幅変更ならページを再構築。
-  */
-
-  if(
-    !newText.startsWith(
-      displayedPreviewText
-    ) ||
-    newText.length <
-      displayedPreviewText.length
-  ){
-
-    displayedPreviewText =
-      newText;
-
-    currentPage =
-      pages.length - 1;
-
-    buildPages();
-
-    return;
-
-  }
-
-  const oldText =
-    displayedPreviewText;
-
-  const addedText =
-    newText.slice(
-      oldText.length
-    );
-
-  if(!addedText){
-
-    return;
-
-  }
-
-  /*
-    長文入力ではアニメーションを
-    実質即時にする。
-  */
-
-  const speed =
-    getAnimationSpeed(
-      [...addedText].length
-    );
-
-  displayedPreviewText =
-    newText;
-
-  buildPages();
-
-  /*
-    入力中は最新ページへ追従。
-  */
-
-  const newPages =
-    splitTextIntoPages(
-      newText
-    );
-
-  pages =
-    newPages;
-
-  currentPage =
-    pages.length - 1;
-
   const preview =
     $("preview");
 
-  const full =
-    pages[currentPage] || "";
 
   /*
-    短い入力だけ簡易タイプ演出。
+    普通の文字追加なら
+    追加部分だけアニメーション。
   */
 
   if(
-    speed >= 7 &&
-    full.length > 0
+    newText.startsWith(
+      displayedPreviewText
+    ) &&
+    newText.length >
+    displayedPreviewText.length
   ){
 
-    let i = 0;
+    const oldText =
+      displayedPreviewText;
 
-    preview.textContent = "";
+    const addedText =
+      newText.slice(
+        oldText.length
+      );
 
-    function type(){
+    preview.textContent =
+      oldText;
 
-      if(token !== animationToken){
+    const characters =
+      [...addedText];
+
+    const speed =
+      getAnimationSpeed(
+        characters.length
+      );
+
+    let index = 0;
+
+
+    function typeNext(){
+
+      if(
+        token !== animationToken
+      ){
+
         return;
+
       }
 
-      if(i >= full.length){
+
+      if(
+        index >= characters.length
+      ){
 
         preview.textContent =
-          full;
+          newText;
 
-        updatePageIndicator();
+        displayedPreviewText =
+          newText;
 
         return;
 
       }
 
+
+      const current =
+        characters
+          .slice(
+            0,
+            index + 1
+          )
+          .join("");
+
+
       preview.textContent =
-        full.slice(
-          0,
-          ++i
-        );
+        oldText +
+        current;
+
+
+      index++;
+
 
       animationTimer =
         setTimeout(
-          type,
+          typeNext,
           speed
         );
 
     }
 
-    type();
 
-  }else{
+    typeNext();
 
-    renderCurrentPage(
-      false
-    );
+    return;
 
   }
 
-  updatePageIndicator();
+
+  /*
+    削除・途中編集・章変更など。
+  */
+
+  displayedPreviewText =
+    newText;
+
+  preview.textContent =
+    newText;
 
 }
 
@@ -2106,6 +1647,7 @@ function render(){
     return;
   }
 
+
   const total =
     state.chapters.reduce(
       (sum,item)=>
@@ -2116,11 +1658,14 @@ function render(){
       0
     );
 
+
   $("titleInput").value =
     state.title;
 
+
   $("bookTitle").textContent =
     state.title;
+
 
   $("bookMeta").textContent =
     chapter.title +
@@ -2130,14 +1675,13 @@ function render(){
     ).toLocaleString() +
     "字";
 
-  $("readerChapter").textContent =
-    chapter.title;
 
   $("characterCount").textContent =
     characterLength(
       chapter.text
     ).toLocaleString() +
     "字";
+
 
   $("lineCount").textContent =
     (
@@ -2147,19 +1691,19 @@ function render(){
     ).toLocaleString() +
     "行";
 
+
   $("totalCharacters").textContent =
     total.toLocaleString() +
     "字";
 
-  renderChapters();
 
-  applySettings();
+  renderChapters();
 
 }
 
 
 /* =========================================================
-   CHAPTER LIST
+   CHAPTERS
 ========================================================= */
 
 function renderChapters(){
@@ -2167,8 +1711,10 @@ function renderChapters(){
   const container =
     $("chapters");
 
+
   container.innerHTML =
     "";
+
 
   state.chapters.forEach(
     (chapter,index)=>{
@@ -2178,8 +1724,10 @@ function renderChapters(){
           "button"
         );
 
+
       button.type =
         "button";
+
 
       button.className =
         "chapter" +
@@ -2189,6 +1737,7 @@ function renderChapters(){
             ? " active"
             : ""
         );
+
 
       button.innerHTML =
         escapeHtml(
@@ -2200,12 +1749,12 @@ function renderChapters(){
         ).toLocaleString() +
         "字</small>";
 
+
       button.addEventListener(
         "click",
-        ()=>{
-          switchChapter(index);
-        }
+        ()=>switchChapter(index)
       );
+
 
       container.appendChild(
         button
@@ -2213,6 +1762,7 @@ function renderChapters(){
 
     }
   );
+
 
   $("chapterCount").textContent =
     state.chapters.length;
@@ -2234,35 +1784,33 @@ function switchChapter(
 
   animationToken++;
 
+
   syncEditor();
+
 
   state.activeChapter =
     index;
 
+
   const chapter =
     currentChapter();
+
 
   $("editor").value =
     chapter.text;
 
+
   displayedPreviewText =
     chapter.text;
 
-  currentPage =
-    0;
 
-  pages =
-    splitTextIntoPages(
-      chapter.text
-    );
+  $("preview").textContent =
+    chapter.text;
+
 
   render();
 
-  renderCurrentPage(
-    false
-  );
-
-  updatePageIndicator();
+  applySettings();
 
   scheduleSave();
 
@@ -2279,11 +1827,14 @@ function scheduleSave(){
     saveTimer
   );
 
+
   $("saveState").textContent =
     "保存中…";
 
+
   $("status").textContent =
     "編集中";
+
 
   saveTimer =
     setTimeout(
@@ -2300,26 +1851,24 @@ function saveState(){
     saveTimer
   );
 
+
   syncEditor();
+
 
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify(state)
   );
 
+
   $("saveState").textContent =
     "保存済み";
+
 
   $("status").textContent =
     "保存しました";
 
 }
-
-
-$("saveButton").addEventListener(
-  "click",
-  saveState
-);
 
 
 /* =========================================================
@@ -2332,12 +1881,15 @@ $("editor").addEventListener(
 
     syncEditor();
 
+
     const text =
       currentChapter().text;
+
 
     animatePreview(
       text
     );
+
 
     $("bookMeta").textContent =
       currentChapter().title +
@@ -2347,11 +1899,13 @@ $("editor").addEventListener(
       ).toLocaleString() +
       "字";
 
+
     $("characterCount").textContent =
       characterLength(
         text
       ).toLocaleString() +
       "字";
+
 
     $("lineCount").textContent =
       (
@@ -2360,6 +1914,7 @@ $("editor").addEventListener(
           : 0
       ).toLocaleString() +
       "行";
+
 
     const total =
       state.chapters.reduce(
@@ -2371,11 +1926,14 @@ $("editor").addEventListener(
         0
       );
 
+
     $("totalCharacters").textContent =
       total.toLocaleString() +
       "字";
 
+
     renderChapters();
+
 
     scheduleSave();
 
@@ -2395,8 +1953,10 @@ $("titleInput").addEventListener(
       event.target.value ||
       "新しい物語";
 
+
     $("bookTitle").textContent =
       state.title;
+
 
     scheduleSave();
 
@@ -2413,23 +1973,24 @@ function applySettings(){
   const settings =
     state.settings;
 
+
   const preview =
     $("preview");
 
-  if(!preview){
-    return;
-  }
 
   preview.style.fontSize =
     settings.fontSize +
     "px";
 
+
   preview.style.lineHeight =
     settings.lineHeight;
+
 
   preview.style.letterSpacing =
     settings.letterSpacing +
     "em";
+
 
   preview.style.fontFamily =
     settings.fontFamily;
@@ -2442,17 +2003,22 @@ function openSettings(){
   const settings =
     state.settings;
 
+
   $("fontSize").value =
     settings.fontSize;
+
 
   $("lineHeight").value =
     settings.lineHeight;
 
+
   $("letterSpacing").value =
     settings.letterSpacing;
 
+
   $("fontFamily").value =
     settings.fontFamily;
+
 
   $("settingsModal")
     .classList
@@ -2470,9 +2036,11 @@ $("settingsButton").addEventListener(
 $("closeSettings").addEventListener(
   "click",
   ()=>{
+
     $("settingsModal")
       .classList
       .remove("open");
+
   }
 );
 
@@ -2484,11 +2052,10 @@ $("fontSize").addEventListener(
     state.settings.fontSize =
       Number(
         event.target.value
-      ) || 18;
+      );
+
 
     applySettings();
-
-    buildPages();
 
     scheduleSave();
 
@@ -2503,11 +2070,10 @@ $("lineHeight").addEventListener(
     state.settings.lineHeight =
       Number(
         event.target.value
-      ) || 1.9;
+      );
+
 
     applySettings();
-
-    buildPages();
 
     scheduleSave();
 
@@ -2522,7 +2088,8 @@ $("letterSpacing").addEventListener(
     state.settings.letterSpacing =
       Number(
         event.target.value
-      ) || 0;
+      );
+
 
     applySettings();
 
@@ -2539,9 +2106,8 @@ $("fontFamily").addEventListener(
     state.settings.fontFamily =
       event.target.value;
 
-    applySettings();
 
-    buildPages();
+    applySettings();
 
     scheduleSave();
 
@@ -2550,15 +2116,17 @@ $("fontFamily").addEventListener(
 
 
 /* =========================================================
-   NEW WORK
+   NEW
 ========================================================= */
 
 $("newButton").addEventListener(
   "click",
   ()=>{
+
     $("newModal")
       .classList
       .add("open");
+
   }
 );
 
@@ -2566,9 +2134,11 @@ $("newButton").addEventListener(
 $("cancelNew").addEventListener(
   "click",
   ()=>{
+
     $("newModal")
       .classList
       .remove("open");
+
   }
 );
 
@@ -2583,37 +2153,36 @@ $("createNew").addEventListener(
 
     animationToken++;
 
+
     state =
       createDefaultState();
+
 
     state.title =
       $("newTitle").value ||
       "新しい物語";
 
+
     $("editor").value =
       "";
+
 
     displayedPreviewText =
       "";
 
-    pages =
-      [""];
-
-    currentPage =
-      0;
 
     $("preview").textContent =
       "";
+
 
     $("newModal")
       .classList
       .remove("open");
 
+
     render();
 
     applySettings();
-
-    updatePageIndicator();
 
     saveState();
 
@@ -2635,10 +2204,13 @@ $("addChapter").addEventListener(
 
     animationToken++;
 
+
     syncEditor();
+
 
     const number =
       state.chapters.length + 1;
+
 
     state.chapters.push({
 
@@ -2651,27 +2223,24 @@ $("addChapter").addEventListener(
 
     });
 
+
     state.activeChapter =
       state.chapters.length - 1;
+
 
     $("editor").value =
       "";
 
+
     displayedPreviewText =
       "";
 
-    pages =
-      [""];
-
-    currentPage =
-      0;
 
     $("preview").textContent =
       "";
 
-    render();
 
-    updatePageIndicator();
+    render();
 
     scheduleSave();
 
@@ -2685,42 +2254,29 @@ $("addChapter").addEventListener(
 
 function enterReadingMode(){
 
-  syncEditor();
-
-  buildPages();
-
   $("reader")
     .classList
     .add("reading");
+
+
+  document.body
+    .classList
+    .add("reading-mode");
+
 
   $("readingMode")
     .classList
     .add("active");
 
+
   $("writeMode")
     .classList
     .remove("active");
 
-  $("mobilePreview")
-    .classList
-    .remove("active");
 
-  /*
-    読書開始時は現在章の最初のページ。
-  */
+  $("status").textContent =
+    "読書モード";
 
-  currentPage = 0;
-
-  pages =
-    splitTextIntoPages(
-      currentChapter().text
-    );
-
-  renderCurrentPage(
-    false
-  );
-
-  updatePageIndicator();
 
 }
 
@@ -2731,17 +2287,25 @@ function exitReadingMode(){
     .classList
     .remove("reading");
 
-  $("writeMode")
+
+  document.body
     .classList
-    .add("active");
+    .remove("reading-mode");
+
 
   $("readingMode")
     .classList
     .remove("active");
 
-  $("mobilePreview")
+
+  $("writeMode")
     .classList
-    .remove("active");
+    .add("active");
+
+
+  $("status").textContent =
+    "執筆モード";
+
 
 }
 
@@ -2758,7 +2322,7 @@ $("writeMode").addEventListener(
 );
 
 
-$("readerClose").addEventListener(
+$("readingExit").addEventListener(
   "click",
   exitReadingMode
 );
@@ -2772,91 +2336,23 @@ $("mobilePreview").addEventListener(
   "click",
   ()=>{
 
-    const reader =
-      $("reader");
-
-    if(
-      reader.classList.contains(
-        "mobile-preview"
-      )
-    ){
-
-      reader.classList.remove(
+    $("reader")
+      .classList
+      .toggle(
         "mobile-preview"
       );
-
-      return;
-
-    }
-
-    reader.classList.add(
-      "mobile-preview"
-    );
-
-    buildPages();
 
   }
 );
 
 
 /* =========================================================
-   TOUCH SWIPE
+   SAVE BUTTON
 ========================================================= */
 
-$("previewStage").addEventListener(
-  "touchstart",
-  event=>{
-
-    if(!event.touches.length){
-      return;
-    }
-
-    touchStartX =
-      event.touches[0].clientX;
-
-  },
-  {passive:true}
-);
-
-
-$("previewStage").addEventListener(
-  "touchend",
-  event=>{
-
-    if(!touchStartX){
-      return;
-    }
-
-    const endX =
-      event.changedTouches[0].clientX;
-
-    const diff =
-      endX - touchStartX;
-
-    touchStartX = 0;
-
-    if(Math.abs(diff) < 45){
-      return;
-    }
-
-    /*
-      縦書き読書では
-      左へスワイプ = 次
-      右へスワイプ = 前
-    */
-
-    if(diff < 0){
-
-      nextPage();
-
-    }else{
-
-      prevPage();
-
-    }
-
-  },
-  {passive:true}
+$("saveButton").addEventListener(
+  "click",
+  saveState
 );
 
 
@@ -2878,29 +2374,37 @@ function downloadFile(
       }
     );
 
+
   const url =
     URL.createObjectURL(
       blob
     );
+
 
   const link =
     document.createElement(
       "a"
     );
 
+
   link.href =
     url;
 
+
   link.download =
     filename;
+
 
   document.body.appendChild(
     link
   );
 
+
   link.click();
 
+
   link.remove();
+
 
   setTimeout(
     ()=>{
@@ -2920,6 +2424,7 @@ $("exportTxt").addEventListener(
 
     syncEditor();
 
+
     const text =
       state.chapters
         .map(
@@ -2931,6 +2436,7 @@ $("exportTxt").addEventListener(
         .join(
           "\n\n"
         );
+
 
     downloadFile(
       state.title +
@@ -2951,44 +2457,50 @@ $("exportHtml").addEventListener(
 
     syncEditor();
 
+
     const body =
       state.chapters
         .map(
           chapter =>
 
-            `
-            <section class="chapter">
-              <h2>${escapeHtml(chapter.title)}</h2>
-              <div class="novel">${escapeHtml(chapter.text).replace(/\n/g,"<br>")}</div>
-            </section>
-            `
+            "<h2>" +
+            escapeHtml(
+              chapter.title
+            ) +
+            "</h2>" +
+
+            "<div class='novel'>" +
+            escapeHtml(
+              chapter.text
+            ).replace(
+              /\n/g,
+              "<br>"
+            ) +
+            "</div>"
         )
         .join("");
+
 
     const html =
 `<!doctype html>
 <html lang="ja">
 <head>
-
 <meta charset="utf-8">
 
-<meta name="viewport"
-      content="width=device-width,initial-scale=1">
-
-<title>${escapeHtml(state.title)}</title>
+<title>
+${escapeHtml(state.title)}
+</title>
 
 <style>
 
 html,
 body{
   margin:0;
-  width:100%;
   min-height:100%;
 }
 
 body{
-  background:#d9d5cc;
-  color:#252525;
+  background:#ddd;
 }
 
 .page{
@@ -2997,29 +2509,11 @@ body{
   padding:60px;
 
   background:#f7f3ea;
+
+  color:#252525;
 }
 
 h1{
-  writing-mode:vertical-rl;
-
-  font-family:
-    "Yu Mincho",
-    "Hiragino Mincho ProN",
-    "Noto Serif JP",
-    serif;
-
-  margin:0 0 40px;
-
-  font-size:32px;
-}
-
-.chapter{
-  margin-bottom:70px;
-}
-
-.chapter h2{
-  writing-mode:vertical-rl;
-
   font-family:
     "Yu Mincho",
     "Hiragino Mincho ProN",
@@ -3029,14 +2523,14 @@ h1{
 
 .novel{
   writing-mode:vertical-rl;
-
   text-orientation:mixed;
 
   white-space:pre-wrap;
 
-  height:80vh;
-
-  overflow:auto;
+  height:
+    calc(
+      100vh - 120px
+    );
 
   font-family:
     "Yu Mincho",
@@ -3044,11 +2538,14 @@ h1{
     "Noto Serif JP",
     serif;
 
-  font-size:${state.settings.fontSize}px;
+  font-size:
+    ${state.settings.fontSize}px;
 
-  line-height:${state.settings.lineHeight};
+  line-height:
+    ${state.settings.lineHeight};
 
-  letter-spacing:${state.settings.letterSpacing}em;
+  letter-spacing:
+    ${state.settings.letterSpacing}em;
 }
 
 </style>
@@ -3068,8 +2565,8 @@ ${body}
 </main>
 
 </body>
-
 </html>`;
+
 
     downloadFile(
       state.title +
@@ -3092,10 +2589,6 @@ document.addEventListener(
   "keydown",
   event=>{
 
-    /*
-      Ctrl / Cmd + S
-    */
-
     if(
       (event.ctrlKey ||
        event.metaKey) &&
@@ -3106,14 +2599,8 @@ document.addEventListener(
 
       saveState();
 
-      return;
-
     }
 
-
-    /*
-      Escape
-    */
 
     if(
       event.key === "Escape"
@@ -3130,6 +2617,11 @@ document.addEventListener(
             )
         );
 
+
+      /*
+        Escで読書モードも終了。
+      */
+
       if(
         $("reader")
           .classList
@@ -3140,126 +2632,10 @@ document.addEventListener(
 
       }
 
-      return;
-
-    }
-
-
-    /*
-      読書モード中だけ
-      ページ送りを有効化。
-    */
-
-    if(
-      $("reader")
-        .classList
-        .contains("reading")
-    ){
-
-      /*
-        矢印
-      */
-
-      if(
-        event.key === "ArrowLeft" ||
-        event.key.toLowerCase() === "d"
-      ){
-
-        event.preventDefault();
-
-        nextPage();
-
-        return;
-
-      }
-
-      if(
-        event.key === "ArrowRight" ||
-        event.key.toLowerCase() === "a"
-      ){
-
-        event.preventDefault();
-
-        prevPage();
-
-        return;
-
-      }
-
-      /*
-        Space
-      */
-
-      if(
-        event.code === "Space"
-      ){
-
-        event.preventDefault();
-
-        nextPage();
-
-      }
-
     }
 
   }
 );
-
-
-/* =========================================================
-   RESIZE
-========================================================= */
-
-let resizeTimer = null;
-
-window.addEventListener(
-  "resize",
-  ()=>{
-
-    clearTimeout(
-      resizeTimer
-    );
-
-    resizeTimer =
-      setTimeout(
-        ()=>{
-          buildPages();
-        },
-        150
-      );
-
-  }
-);
-
-
-/* =========================================================
-   MODAL BACKDROP
-========================================================= */
-
-document
-  .querySelectorAll(".modal-bg")
-  .forEach(
-    modal=>{
-
-      modal.addEventListener(
-        "click",
-        event=>{
-
-          if(
-            event.target === modal
-          ){
-
-            modal.classList.remove(
-              "open"
-            );
-
-          }
-
-        }
-      );
-
-    }
-  );
 
 
 /* =========================================================
@@ -3269,25 +2645,18 @@ document
 $("editor").value =
   currentChapter().text;
 
+
 displayedPreviewText =
   currentChapter().text;
 
-pages =
-  splitTextIntoPages(
-    currentChapter().text
-  );
 
-currentPage = 0;
+$("preview").textContent =
+  displayedPreviewText;
+
 
 render();
 
 applySettings();
-
-renderCurrentPage(
-  false
-);
-
-updatePageIndicator();
 
 </script>
 
